@@ -1,0 +1,7 @@
+./venv
+./database.sqlite
+./.idea
+./.idea/*
+./error.log
+./test_notebook.ipynb
+**/__pycache__/
