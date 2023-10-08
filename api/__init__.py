@@ -10,9 +10,11 @@ def init_api(app):
     from .userAPI import user_blueprint
     from .loginAPI import login_blueprint
     from .productAPI import manager_blueprint
+    from .adminAPI import admin_blueprint
     api.register_blueprint(login_blueprint, url_prefix='/login')
     api.register_blueprint(user_blueprint, url_prefix='/user')
     api.register_blueprint(manager_blueprint, url_prefix='/manager')
+    api.register_blueprint(admin_blueprint, url_prefix='/admin')
     app.register_blueprint(api, url_prefix='/api')
     jwt.init_app(app)
 

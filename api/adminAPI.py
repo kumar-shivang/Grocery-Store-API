@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
-from database.schema import ProductSchema, UserSchema, CategoryRequestSchema
-from database.models import Product, Role, User, CategoryRequest
+from database.schema import UserSchema, CategoryRequestSchema
+from database.models import Role, User, CategoryRequest
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
