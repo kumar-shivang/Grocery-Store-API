@@ -15,7 +15,7 @@ def place_order():
     try:
         current_user = User.query.get(get_jwt_identity())
         body = request.get_json()
-        if current_user.role.role_name=="user":
+        if current_user.role.role_name == "user":
             body['user_id'] = current_user.id
             product = Product.query.get(body['product_id'])
             if product:
@@ -46,7 +46,7 @@ def get_orders():
     order_schema = OrderSchema(many=True)
     try:
         current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name=="user":
+        if current_user.role.role_name == "user":
             orders = Order.query.filter_by(user_id=current_user.id).all()
             if orders:
                 return make_response(jsonify({'message': 'Orders fetched successfully',
@@ -66,7 +66,7 @@ def get_orders():
 def cancel_order(order_id):
     try:
         current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name=="user":
+        if current_user.role.role_name == "user":
             order = Order.query.get(order_id)
             if order:
                 if order.confirmed:
@@ -91,5 +91,3 @@ def cancel_order(order_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
