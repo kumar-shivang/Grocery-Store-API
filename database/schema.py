@@ -339,14 +339,20 @@ class OrderSchema(Schema):
 
     @validates('quantity')
     def validate_quantity(self, quantity):
-        if quantity < 1:
-            raise ValidationError("Quantity must be greater than 0")
-
+        if not isinstance(quantity, int):
+            raise ValidationError("Quantity must be an integer")
+        elif quantity <= 0:
+            raise ValidationError("Quantity must be greater than zero")
     @post_load
     def make_order(self, data):
         try:
-            return Order(**data)
+            user_id = data.get('user_id')
+            product_id = data.get('product_id')
+            quantity = data.get('quantity')
+            return Order(user_id=user_id, product_id=product_id, quantity=quantity)
         except TypeError as e:
+            raise ValidationError(str(e))
+        except Exception as e:
             raise ValidationError(str(e))
 
 
