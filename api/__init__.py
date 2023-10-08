@@ -49,5 +49,3 @@ def not_found(e):
 def internal_server_error(e):
     logger.error(e)
     return {'message': 'Internal server error'}, 500
-
-
