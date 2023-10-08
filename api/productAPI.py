@@ -129,3 +129,21 @@ def update_expiry_date(product_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
+@manager_blueprint.route('/delete_product/<int:product_id>', methods=['DELETE'])
+@jwt_required()
+def delete_product(product_id):
+    try:
+        product = Product.query.filter_by(id=product_id).first()
+        if product:
+            if product.added_by != get_jwt_identity():
+                return make_response(jsonify({'message': 'You are not authorized to delete this product'}), 403)
+            db.session.delete(product)
+            db.session.commit()
+            return make_response(jsonify({'message': 'Product deleted successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Product not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
