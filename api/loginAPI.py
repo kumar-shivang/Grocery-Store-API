@@ -50,5 +50,3 @@ def manager_login():
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
