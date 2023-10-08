@@ -36,7 +36,7 @@ def get_products():
         products = Product.query.filter_by(added_by=get_jwt_identity()).all()
         if products:
             return make_response(jsonify({'message': 'Products fetched successfully',
-                                          'products': ProductSchema.dump(products, many=True)}),
+                                          'products': ProductSchema().dump(products, many=True)}),
                                  200)
         else:
             return make_response(jsonify({'message': 'No products found'}), 404)
