@@ -73,7 +73,8 @@ def update_price(product_id):
         product = Product.query.filter_by(id=product_id).first()
         if product:
             if product.added_by != get_jwt_identity():
-                return make_response(jsonify({'message': 'You are not authorized to update price of this product'}), 403)
+                return make_response(jsonify({'message': 'You are not authorized to update price of this product'}),
+                                     -403)
             body = request.get_json()
             price = body.get('price')
             if price:
@@ -88,7 +89,6 @@ def update_price(product_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-
 @manager_blueprint.route('/update_expiry_date/<int:product_id>', methods=['PUT'])
 @jwt_required()
 def update_expiry_date(product_id):
@@ -96,7 +96,8 @@ def update_expiry_date(product_id):
         product = Product.query.filter_by(id=product_id).first()
         if product:
             if product.added_by != get_jwt_identity():
-                return make_response(jsonify({'message': 'You are not authorized to update expiry date of this product'}), 403)
+                return make_response(jsonify({'message': 'You are not authorized to update expiry date of this product'}
+                                             ), 403)
             body = request.get_json()
             expiry_date = body.get('expiry_date')
             if expiry_date:
@@ -127,5 +128,3 @@ def delete_product(product_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
