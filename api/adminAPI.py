@@ -8,7 +8,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 admin_blueprint = Blueprint('admin', __name__)
 
 
-@admin_blueprint.route('/create_admin', methods=['POST']) #Admin is already created in the database, but this is how you would create one
+@admin_blueprint.route('/create_admin', methods=[
+    'POST'])  # Admin is already created in the database, but this is how you would create one
 def create_admin():
     user_schema = UserSchema(many=False)
     try:
@@ -41,7 +42,8 @@ def approve_category(category_request_id):
             category = category_request.approve()
             db.session.add(category)
             db.session.commit()
-            return make_response(jsonify({'message': 'Category {} approved successfully'.format(category.category_name)}), 200)
+            return make_response(
+                jsonify({'message': 'Category {} approved successfully'.format(category.category_name)}), 200)
         else:
             return make_response(jsonify({'message': 'Category request not found'}), 404)
     except Exception as e:
@@ -79,12 +81,11 @@ def get_category_requests():
         category_requests = CategoryRequest.query.filter_by(approved=False).all()
         if category_requests:
             return make_response(jsonify({'message': 'Category requests fetched successfully',
-                                          'category_requests': category_request_schema.dump(category_requests, many=True)}),
+                                          'category_requests': category_request_schema.dump(category_requests,
+                                                                                            many=True)}),
                                  200)
         else:
             return make_response(jsonify({'message': 'Category request list is empty'}), 404)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
