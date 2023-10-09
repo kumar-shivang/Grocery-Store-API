@@ -76,7 +76,6 @@ class Role(db.Model):
     role_description = db.Column(db.String(100))
 
     def __init__(self, role_name, role_description=""):
-
         self.role_name = role_name
         self.role_description = role_description
 
@@ -115,7 +114,7 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __init__(self, name, rate, unit, description,added_by,category_id,
+    def __init__(self, name, rate, unit, description, added_by, category_id,
                  expiry_date=None, current_stock=0):
         self.name = name
         self.rate = rate
@@ -165,7 +164,8 @@ class Category(db.Model):
         - last_updated (datetime): The date and time when the category was last updated.
 
     Methods
-        - __init__(category_name, category_description="Product Category"): Initializes a new instance of the Category class.
+        - __init__(category_name, category_description="Product Category"):
+            Initializes a new instance of the Category class.
         - __repr__(): Returns a string representation of the Category object.
         - update(): Updates the last_updated attribute of the Category object.
 
@@ -241,7 +241,8 @@ class Order(db.Model):
 
 class CategoryRequest(db.Model):
     """
-    :class:`CategoryRequest` class represents a request to add a new category in the system. Each request is made by a user.
+    :class:`CategoryRequest` class represents a request to add a new category in the system.
+        Each request is made by a manager.
 
     Attributes:
     ----------
@@ -255,7 +256,8 @@ class CategoryRequest(db.Model):
 
     Methods:
     -------
-        - __init__(category_name, category_description, user_id): Initializes a new instance of the CategoryRequest class.
+        - __init__(category_name, category_description, user_id):
+            Initializes a new instance of the CategoryRequest class.
         - __repr__(): Returns a string representation of the CategoryRequest object.
         - approve(): Approves the request and returns the Category object.
         - reject(): Rejects the request and returns None.
