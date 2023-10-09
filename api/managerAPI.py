@@ -62,3 +62,19 @@ def request_category():
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+@manager_blueprint.route('/', methods=['GET'])
+@jwt_required()
+def get_manager():
+    user_schema = UserSchema()
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=user_id).first()
+        products = Product.query.filter_by(added_by=user_id).all()
+        user = user_schema.dump(user)
+        user['products'] = ProductSchema().dump(products, many=True)
+        return make_response(jsonify(user), 200)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
