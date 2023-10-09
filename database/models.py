@@ -5,16 +5,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 class User(db.Model):
-    """A class representing a user in the application.
+    """User Class Documentation
 
-    This class contains information about a user such as their username, password, email, and orders.
+    This class represents a User in the system.
 
-    Attributes:
-        id (int): The unique identifier of the user.
-        username (str): The username of the user.
-        password (str): The hashed password of the user.
-        email (str): The email address of the user.
-        role_id (int): The ID of the role of the user.
+    Attributes
+        - id (int): The unique identifier for the user.
+        - username (str): The username of the user.
+        - password (str): The hashed password of the user.
+        - email (str): The email address of the user.
+        - role_id (int): The role ID of the user.
+        - role (Role): The role object associated with the user.
+
+    Methods
+        - __init__(username, password, email, role_id=None): Initializes a new instance of the User class.
+        - set_password(password): Sets the password of the user.
+        - check_password(password): Checks if the provided password matches the user's password.
+        - __repr__(): Returns a string representation of the User object.
+
 
     """
     __tablename__ = 'user'
@@ -49,27 +57,26 @@ class User(db.Model):
 
 class Role(db.Model):
     """
-    The Role class represents a role in the system.
+    :class:`Role` class represents a role in the system.
 
-    Attributes:
-        id (int): The id of the role.
-        role_name (str): The name of the role.
-        role_description (str): The description of the role.
-        users (Relationship): A relationship to the users with this role.
+    Attributes
+        - id (int): The ID of the role (primary key).
+        - role_name (str): The name of the role.
+        - role_description (str): The description of the role.
 
-    Methods:
-        __init__(self, role_name, role_description="")
-            Initializes a new instance of the Role class.
-        __repr__(self)
-            Returns a string representation of the role.
+    Methods
+        - __init__(role_name, role_description=""): Initializes a new instance of the Role class.
+        - __repr__(): Returns a string representation of the Role object.
+
+
     """
     __tablename__ = 'role'
     id = db.Column(db.Integer, primary_key=True)
     role_name = db.Column(db.String(100), unique=True)
     role_description = db.Column(db.String(100))
-    # users = db.relationship('user', backref='role', lazy='dynamic')
 
     def __init__(self, role_name, role_description=""):
+
         self.role_name = role_name
         self.role_description = role_description
 
@@ -79,24 +86,22 @@ class Role(db.Model):
 
 class Product(db.Model):
     """
-    The Product class represents a product in the system.
+    :class:`Product` class represents a product in the system. Each product belongs to a category.
 
-    Attributes:
-        id (int): The id of the product.
-        product_name (str): The name of the product.
-        product_rate (float): The rate of the product.
-        product_unit (str): The unit of the product.
-        product_description (str): The description of the product.
-        current_stock (int): The current stock of the product.
-        expiry_date (datetime.date): The expiry date of the product.
-        category_id (int): The id of the category that the product belongs to.
+    Attributes
+        - id (int): The ID of the product (primary key).
+        - name (str): The name of the product.
+        - rate (float): The rate or price of the product.
+        - unit (str): The unit of measurement for the product.
+        - description (str): The description of the product.
+        - current_stock (int): The current stock quantity of the product.
 
-    Methods:
-        __init__(self, product_name, product_rate, product_unit, product_description,
-                expiry_date=datetime.utcnow() + timedelta(days=365), current_stock=0)
-            Initializes a new instance of the Product class.
-        __repr__(self)
-            Returns a string representation of the product.
+    Methods
+        - __init__(name, rate, unit, description, current_stock=0): Initializes a new instance of the Product class.
+        - __repr__(): Returns a string representation of the Product object.
+        - add_stock(quantity): Adds stock to the product.
+        - update_price(new_price): Updates the price of the product.
+        - update_expiry_date(new_expiry_date): Updates the expiry date of the product.
 
     """
     __tablename__ = 'product'
@@ -148,24 +153,21 @@ class Product(db.Model):
         return self
 
 
-
-
-
 class Category(db.Model):
-    """Represents a category of products in the database.
+    """
+    :class:`Category` class represents a category in the system. Each category can have multiple products.
 
-    This class defines the structure and behavior of Category objects.
+    Attributes
+        - id (int): The ID of the category (primary key).
+        - category_name (str): The name of the category.
+        - category_description (str): The description of the category.
+        - added_on (datetime): The date and time when the category was added.
+        - last_updated (datetime): The date and time when the category was last updated.
 
-    Attributes:
-        id (int): The ID of the category (primary key).
-        category_name (str): The name of the category (unique).
-        category_description (str): The description of the category.
-        added_on (datetime): The date and time when the category was added to the database.
-                            (default is current UTC time).
-        last_updated (datetime): The date and time when the category was last updated
-                                (default is current UTC time, updated automatically).
-        products (relationship): A relationship to the Product class,
-                                representing the products associated with this category.
+    Methods
+        - __init__(category_name, category_description="Product Category"): Initializes a new instance of the Category class.
+        - __repr__(): Returns a string representation of the Category object.
+        - update(): Updates the last_updated attribute of the Category object.
 
     """
     __tablename__ = 'category'
@@ -189,16 +191,24 @@ class Category(db.Model):
 
 class Order(db.Model):
     """
-    Represents an order made by a user for a specific product.
+    :class:`Order` class represents an order in the system. Each order is placed by a user for a product.
 
     Attributes:
-        id (int): The unique identifier for the order.
-        order_date (datetime): The date and time when the order was made.
-        product_id (int): The ID of the product being ordered.
-        user_id (int): The ID of the user making the order.
-        confirmed (bool): Indicates whether the order has been confirmed.
-        quantity (int): The quantity of the product being ordered.
-        value (float): The total price of the order.
+    ----------
+        - id (int): The ID of the order (primary key).
+        - order_date (datetime): The date and time when the order was placed.
+        - product_id (int): The ID of the product being ordered.
+        - user_id (int): The ID of the user who placed the order.
+        - confirmed (bool): Indicates whether the order has been confirmed or not.
+        - quantity (int): The quantity of the product being ordered.
+        - value (float): The total value of the order.
+
+    Methods:
+    -------
+        - __init__(product_id, user_id, quantity): Initializes a new instance of the Order class.
+        - __repr__(): Returns a string representation of the Order object.
+        - confirm(): Confirms the order and returns the Order object.
+
     """
     __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
@@ -222,29 +232,34 @@ class Order(db.Model):
     def __repr__(self):
         return '<order {}>'.format(self.id)
 
+    def confirm(self):
+        self.confirmed = True
+        db.session.add(self)
+        db.session.commit()
+        return self
+
 
 class CategoryRequest(db.Model):
     """
-    Represents a request to add a new category to the database.
+    :class:`CategoryRequest` class represents a request to add a new category in the system. Each request is made by a user.
 
     Attributes:
-        id (int): The unique identifier for the category request.
-        category_name (str): The name of the category being requested.
-        category_description (str): The description of the category being requested.
-        added_on (datetime): The date and time when the category request was made.
-        approved_at (datetime): The date and time when the category request was last updated.
-        user_id (int): The ID of the user making the category request.
-        approved (bool): Indicates whether the category request has been approved.
+    ----------
+        - id (int): The ID of the category request (primary key).
+        - category_name (str): The name of the category being requested.
+        - category_description (str): The description of the category being requested.
+        - added_on (datetime): The date and time when the request was made.
+        - approved_at (datetime): The date and time when the request was approved.
+        - user_id (int): The ID of the user who made the request.
+        - approved (bool): Indicates whether the request has been approved or not.
 
     Methods:
-        approve(self)
-            Approves the category request and adds the category to the database.
-        reject(self)
-            Rejects the category request and deletes it from the database.
-        new_requests()
-            Returns a list of all category requests that have not been approved.
-
-
+    -------
+        - __init__(category_name, category_description, user_id): Initializes a new instance of the CategoryRequest class.
+        - __repr__(): Returns a string representation of the CategoryRequest object.
+        - approve(): Approves the request and returns the Category object.
+        - reject(): Rejects the request and returns None.
+        - new_requests(): Returns a list of all unapproved requests.
 
     """
     __tablename__ = 'category_request'
