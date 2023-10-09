@@ -175,11 +175,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                access_token:
-                  type: string
-                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+              $ref: '#/components/schemas/token'
       responses:
         '200':
             description: OK
@@ -239,11 +235,7 @@ paths:
             content:
               application/json:
                 schema:
-                  type: object
-                  properties:
-                    access_token:
-                        type: string
-                        example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+                    $ref: '#/components/schemas/token'
       responses:
         '200':
             description: OK
@@ -285,9 +277,146 @@ paths:
                       message:
                         type: string
                         example: Category request not found
+  /admin/create_admin:
+    post:
+      tags:
+        - admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: Password123
+                email:
+                  type: string
+                  example: admin@grocery.com
 
-
-
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Admin created successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Admin role not found
+  /admin/get_category_requests:
+    get:
+      tags:
+        - admin
+      summary:
+        Get all category requests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/token'
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    category_requests:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/category_request'
+                    message:
+                        type: string
+                        example: Category requests retrieved successfully
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: You are not authorized to view category requests
+  /manager/create_manager:
+    post:
+      tags:
+        - manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: manager
+                password:
+                  type: string
+                  example: Password123
+                email:
+                  type: string
+                  example: manager@grocery.com
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Manager created successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Manager role not found
 components:
   schemas:
     category_request:
@@ -396,6 +525,12 @@ components:
                 example: false
             product:
                 $ref: '#/components/schemas/product'
+    token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
 
 
 
