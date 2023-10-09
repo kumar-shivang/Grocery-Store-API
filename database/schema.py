@@ -236,13 +236,11 @@ class CategorySchema(Schema):
 
     class Meta:
         model = Category
-        fields = ('id', 'category_name', 'category_description', 'added_on', 'last_updated', 'products')
+        fields = ('id', 'category_name', 'category_description', 'products')
 
     id = fields.Int(dump_only=True)
     category_name = fields.Str()
     category_description = fields.Str()
-    added_on = fields.DateTime(dump_only=True)
-    last_updated = fields.DateTime(dump_only=True)
     products = fields.Nested('ProductSchema', exclude=('category',))
 
     @validates('category_name')
@@ -359,13 +357,12 @@ class CategoryRequestSchema(Schema):
 
     class Meta:
         model = CategoryRequest
-        fields = ('id', 'category_name', 'category_description', 'added_on', 'approved_at', 'last_updated', 'approved')
+        fields = ('id', 'category_name', 'category_description', 'added_on', 'approved_at', 'approved')
 
     id = fields.Int(dump_only=True)
     category_name = fields.Str()
     category_description = fields.Str()
     added_on = fields.DateTime(dump_only=True)
-    last_updated = fields.DateTime(dump_only=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
 
