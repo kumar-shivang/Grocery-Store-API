@@ -4,21 +4,28 @@ from marshmallow import Schema, fields, ValidationError, validates, post_load
 from .models import User, Product, Category, Order, Role, CategoryRequest
 
 
+def clean(string):
+    string = string.strip()
+    string = string.lower()
+    string = bleach.clean(string)
+    return string
+
+
 class UserSchema(Schema):
     """
-    UserSchema class for serializing and deserializing User objects.
+    :class:`UserSchema` class for serializing and deserializing User objects.
 
-    Attributes:
-        id (Int, optional): The ID of the user. (read-only)
-        username (Str): The username of the user.
-        email (Email): The email address of the user.
-        password (Str, write-only): The password of the user.
-        role (RoleSchema, optional): The role of the user.
+    Attributes
+        - id (Int, optional): The ID of the user. (read-only)
+        - username (Str): The username of the user.
+        - email (Email): The email address of the user.
+        - password (Str, write-only): The password of the user.
+        - role (RoleSchema, optional): The role of the user.
 
-    Methods:
-        validate_password(password): Validates the password field.
-        validate_username(username): Validates the username field.
-        make_user(data): Creates a User object from the serialized data.
+    Methods
+        - validate_password(password): Validates the password field.
+        - validate_username(username): Validates the username field.
+        - make_user(data): Creates a User object from the serialized data.
     """
 
     class Meta:
@@ -70,6 +77,9 @@ class UserSchema(Schema):
     @post_load
     def make_user(self, data, **kwargs):
         try:
+            username = data.get('username')
+            username = clean(username)
+            data['username'] = username
             return User(**data)
         except TypeError as e:
             raise ValidationError(str(e))
@@ -79,33 +89,13 @@ class UserSchema(Schema):
 
 class RoleSchema(Schema):
     """
-    The RoleSchema class is used to serialize and deserialize Role objects.
+    :class:`RoleSchema` class for serializing and deserializing Role objects.
 
-    :param Schema: Base class for defining schemas.
-    :type Schema: class
+    Attributes
+        - id (Int, optional): The ID of the role. (read-only)
+        - role_name (Str): The name of the role.
+        - role_description (Str): The description of the role.
 
-    :ivar int id: The ID of the role.
-    :ivar str role_name: The name of the role.
-    :ivar str role_description: The description of the role.
-    :ivar list users: The list of associated User objects.
-
-    :meta class Meta: An inner class for defining metadata.
-    :meta field model: The Role model class from the database.
-    :meta field fields: The fields to include in serialization and deserialization.
-
-    :raises ValidationError: If there is an error validating the data.
-
-    :Example:
-
-    role_schema = RoleSchema()
-
-    # Serialize Role object
-    data = role_schema.dump(role)
-    print(data)
-
-    # Deserialize data into Role object
-    role = role_schema.load(data)
-    print(role)
     """
 
     class Meta:
@@ -115,21 +105,35 @@ class RoleSchema(Schema):
     id = fields.Int(dump_only=True)
     role_name = fields.Str()
     role_description = fields.Str()
-    # users = fields.Nested("UserSchema", many=True, exclude=('role',), dump_only=True)
-
-    # @post_load
-    # def make_role(self, data, **kwargs):
-    #     try:
-    #         return Role(**data)
-    #     except TypeError as e:
-    #         raise ValidationError(str(e))
 
 
 class ProductSchema(Schema):
     """
-    Schema for validating and deserializing Product objects.
+    :class:`ProductSchema` class for serializing and deserializing Product objects.
 
-    :param Schema: The base class for defining schemas.
+    Attributes
+        - id (Int, optional): The ID of the product. (read-only)
+        - name (Str): The name of the product.
+        - rate (Float): The rate of the product.
+        - unit (Str): The unit of the product.
+        - description (Str): The description of the product.
+        - current_stock (Int): The current stock of the product.
+        - expiry_date (Date): The expiry date of the product.
+        - added_by (Int, write-only): The ID of the user who added the product.
+        - category_id (Int, write-only): The ID of the category to which the product belongs.
+        - category (CategorySchema): The category to which the product belongs.
+
+    Methods
+        - validate_name(name): Validates the name field.
+        - validate_rate(rate): Validates the rate field.
+        - validate_unit(unit): Validates the unit field.
+        - validate_description(description): Validates the description field.
+        - validate_current_stock(current_stock): Validates the current_stock field.
+        - validate_expiry_date(expiry_date): Validates the expiry_date field.
+        - validate_added_by(added_by): Validates the added_by field.
+        - validate_category_id(category_id): Validates the category_id field.
+        - make_product(data): Creates a Product object from the serialized data.
+
     """
 
     class Meta:
@@ -197,7 +201,12 @@ class ProductSchema(Schema):
     @post_load()
     def make_product(self, data, **kwargs):
         try:
-            print(data)
+            name = data.get('name')
+            name = clean(name)
+            data['name'] = name
+            description = data.get('description')
+            description = clean(description)
+            data['description'] = description
             if not data.get('category_id'):
                 category = Category.query.filter_by(category_name='Uncategorized').first()
                 data['category_id'] = category.id
@@ -208,16 +217,21 @@ class ProductSchema(Schema):
 
 class CategorySchema(Schema):
     """
-    Schema for serializing and deserializing Category objects.
+    :class:`CategorySchema` class for serializing and deserializing Category objects.
 
-    Attributes:
-        model (Category): The Category model associated with the schema
-        id (Int, optional): The unique identifier of the category
-        category_name (Str): The name of the category
-        category_description (Str): The description of the category
-        added_on (DateTime, optional): The date and time the category was added
-        last_updated (DateTime, optional): The date and time the category was last updated
-        products (Nested[ProductSchema], optional): The nested schema for deserializing and serializing Product objects
+    Attributes
+        - id (Int, optional): The ID of the category. (read-only)
+        - category_name (Str): The name of the category.
+        - category_description (Str): The description of the category.
+        - added_on (DateTime, optional): The datetime when the category was added. (read-only)
+        - last_updated (DateTime, optional): The datetime when the category was last updated. (read-only)
+        - products (List[ProductSchema], optional): The products in the category. (read-only)
+
+    Methods
+        - validate_category_name(category_name): Validates the category_name field.
+        - validate_category_description(category_description): Validates the category_description field.
+        - make_category(data): Creates a Category object from the serialized data.
+
     """
 
     class Meta:
@@ -240,7 +254,6 @@ class CategorySchema(Schema):
         elif Category.query.filter_by(category_name=category_name).first():
             raise ValidationError("Category with name {} already exists".format(category_name))
 
-
     @validates('category_description')
     def validate_category_description(self, category_description):
         if len(category_description) < 10:
@@ -249,69 +262,37 @@ class CategorySchema(Schema):
     @post_load()
     def make_category(self, data):
         try:
+            category_name = data.get('category_name')
+            category_name = clean(category_name)
+            data['category_name'] = category_name
+            category_description = data.get('category_description')
+            category_description = clean(category_description)
+            data['category_description'] = category_description
             return Category(**data)
         except TypeError as e:
             raise ValidationError(str(e))
 
 
-
 class OrderSchema(Schema):
     """
+    :class:`OrderSchema` class for serializing and deserializing Order objects.
 
-    The `OrderSchema` class is responsible for serializing and deserializing Order data to and from JSON, as well as validating the structure and content of the data.
+    Attributes
+        - id (Int, optional): The ID of the order. (read-only)
+        - order_date (DateTime, optional): The datetime when the order was placed. (read-only)
+        - user_id (Int, write-only): The ID of the user who placed the order.
+        - product_id (Int, write-only): The ID of the product ordered.
+        - quantity (Int): The quantity of the product ordered.
+        - value (Float, optional): The value of the order. (read-only)
+        - confirmed (Boolean, optional): Indicates whether the order is confirmed or not. (read-only)
+        - product (ProductSchema, optional): The product ordered. (read-only)
 
-    Example usage:
-    ```Python
-    schema = OrderSchema()
-    data = {
-        'id': 1,
-        'order_date': '2022-01-01',
-        'order_details': 'Order details',
-        'user': {
-            'id': 1,
-            'name': 'John Doe'
-        }
-    }
-    # Serialize an Order object to JSON
-    json_data = schema.dump(data)
-    print(json_data)
-    # {'id': 1, 'order_date': '2022-01-01T00:00:00', 'order_details': 'Order details', 'user': {'id': 1, 'name': 'John Doe'}}
+    Methods
+        - validate_user_id(user_id): Validates the user_id field.
+        - validate_product_id(product_id): Validates the product_id field.
+        - validate_quantity(quantity): Validates the quantity field.
+        - make_order(data): Creates an Order object from the serialized data.
 
-    # Deserialize JSON data to an Order object
-    order = schema.load(json_data)
-    print(order)
-    # <Order object>
-
-    ```
-
-    Class Attributes:
-        - `id`: An Int field representing the order id. It is read-only and will not be serialized in the output JSON.
-
-        - `order_date`: A DateTime field representing the date of the order. This field will be automatically validated and converted to/from a DateTime object.
-
-        - `product`: A Nested field representing the associated Product. This field is excluded from the serialization of Category objects.
-
-        - `category`: A Nested field representing the associated Category. This field is excluded from the serialization of Product objects.
-
-    Methods:
-        - `Meta`: The nested Meta class specifies the Order model and fields that should be serialized/deserialized. It is implemented using Marshmallow's `Meta` class.
-
-        - `validates`: A decorator method that can be used to define additional validation logic for fields of the schema.
-
-        - `post_load`: A decorator method that can be used to perform additional processing after deserialization.
-
-        - `load`: A method that deserializes JSON data into an Order object. It takes a dictionary as input and returns a validated Order instance.
-
-        - `dump`: A method that serializes an Order object into a JSON format. It takes an Order instance as input and returns a dictionary representing the serialized data.
-
-
-    Note: This class requires the following imports:
-    ```Python
-    import bleach
-    from datetime import datetime
-    from marshmallow import Schema, fields, ValidationError, validates, post_load
-    from .models import User, Product, Category, Order, Role, CategoryRequest
-    ```
     """
 
     class Meta:
@@ -358,27 +339,22 @@ class OrderSchema(Schema):
 
 class CategoryRequestSchema(Schema):
     """
-    This class represents the schema for validating and serializing category request data.
+    :class:`CategoryRequestSchema` class for serializing and deserializing CategoryRequest objects.
 
-    :param Schema: The base class for defining a schema.
-    :type Schema: Class
-    :param fields: The fields to include in the schema.
-    :type fields: Tuple
+    Attributes
+        - id (Int, optional): The ID of the category request. (read-only)
+        - category_name (Str): The name of the category requested.
+        - category_description (Str): The description of the category requested.
+        - added_on (DateTime, optional): The datetime when the category request was made. (read-only)
+        - last_updated (DateTime, optional): The datetime when the category request was last updated. (read-only)
+        - approved_at (DateTime, optional): The datetime when the category request was approved. (read-only)
+        - approved (Boolean, optional): Indicates whether the category request is approved or not. (read-only)
 
-    :attribute id: The unique identifier of the category request.
-    :type id: Int
-    :attribute category_name: The name of the category.
-    :type category_name: Str
-    :attribute category_description: The description of the category.
-    :type category_description: Str
-    :attribute added_on: The datetime when the category request was added.
-    :type added_on: DateTime
-    :attribute last_updated: The datetime when the category request was last updated.
-    :type last_updated: DateTime
-    :attribute approved_at: The datetime when the category request was approved.
-    :type approved_at: DateTime
-    :attribute approved: Indicates whether the category request is approved or not.
-    :type approved: Boolean
+    Methods
+        - validate_category_name(category_name): Validates the category_name field.
+        - validate_category_description(category_description): Validates the category_description field.
+        - make_category_request(data): Creates a CategoryRequest object from the serialized data.
+
     """
 
     class Meta:
@@ -392,3 +368,30 @@ class CategoryRequestSchema(Schema):
     last_updated = fields.DateTime(dump_only=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
+
+    @validates('category_name')
+    def validate_category_name(self, category_name):
+        if len(category_name) < 3:
+            raise ValidationError("Category name must be at least 3 characters long")
+        elif not category_name.isalnum():
+            raise ValidationError("Category name must only contain letters and numbers")
+        elif Category.query.filter_by(category_name=category_name).first():
+            raise ValidationError("Category with name {} already exists".format(category_name))
+
+    @validates('category_description')
+    def validate_category_description(self, category_description):
+        if len(category_description) < 10:
+            raise ValidationError("Category description must be at least 10 characters long")
+
+    @post_load()
+    def make_category_request(self, data):
+        try:
+            category_name = data.get('category_name')
+            category_name = clean(category_name)
+            data['category_name'] = category_name
+            category_description = data.get('category_description')
+            category_description = clean(category_description)
+            data['category_description'] = category_description
+            return CategoryRequest(**data)
+        except TypeError as e:
+            raise ValidationError(str(e))
