@@ -13,7 +13,7 @@ def user_login():
         body = request.get_json()
         user = validate_user_credentials(body)
         if not user.role.role_name == 'user':
-            raise Exception('Only users can login here.')
+            return make_response(jsonify({'message': 'Only users can login here.'}), 403)
         access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token)
     except Exception as e:
@@ -30,7 +30,7 @@ def admin_login():
         user = validate_user_credentials(body)
         print(user.role.role_name)
         if not user.role.role_name == 'admin':
-            raise Exception('Only admins can login here.')
+            return make_response(jsonify({'message': 'Only admins can login here.'}), 403)
         access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token)
     except Exception as e:
@@ -44,7 +44,7 @@ def manager_login():
         body = request.get_json()
         user = validate_user_credentials(body)
         if not user.role.role_name == 'manager':
-            raise Exception('Only managers can login here.')
+            return make_response(jsonify({'message': 'Only managers can login here.'}), 403)
         access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token)
     except Exception as e:
