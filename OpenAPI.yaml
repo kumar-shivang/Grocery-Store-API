@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: Grocery Store API
+  description: This API allows you to interact with a grocery store database.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api
+    description: Local server
+paths:
+  /login/admin:
+    post:
+      tags:
+        - admin
+        - login
+      summary: Login as an admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  example: Password123
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid username or password
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Only admins can login here
+  /login/user:
+    post:
+      tags:
+        - user
+        - login
+      summary: Login as a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: user
+                password:
+                  type: string
+                  example: Password123
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid username or password
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Only users can login here
+  /login/manager:
+    post:
+      tags:
+        - manager
+        - login
+      summary: Login as a manager
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: manager
+                password:
+                  type: string
+                  example: Password123
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid username or password
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Only managers can login here
+  /admin/approve_category/<int:category_request_id>:
+    post:
+      tags:
+        - admin
+      summary:
+        Approve a category request
+      parameters:
+        - in: path
+          name: category_request_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the category request to approve
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category "xyz" approved successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: You are not authorized to approve category requests
+        '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category request not found
+  /admin/reject_category/<int:category_request_id>:
+    delete:
+      tags:
+        - admin
+      summary:
+        Reject a category request
+      parameters:
+        - in: path
+          name: category_request_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the category request to reject
+      requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    access_token:
+                        type: string
+                        example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category "xyz" rejected successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: You are not authorized to reject category requests
+        '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category request not found
+
+
+
+components:
+  schemas:
+    category_request:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: xyz
+        added_on:
+          type: string
+          example: 2021-05-01 12:00:00
+        approved:
+          type: boolean
+          example: false
+        approved_at:
+          type: string
+          example: 2021-05-01 12:00:00
+    user:
+        type: object
+        properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: user
+            email:
+              type: string
+              example: user@grocery.com
+            role:
+              $ref: '#/components/schemas/role'
+    role:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        role_name:
+          type: string
+          example: user
+        role_description:
+          type: string
+          example: User role
+    product:
+      type : object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Apple
+        rate:
+            type: integer
+            example: 100
+        unit:
+            type: string
+            example: kg
+        description:
+            type: string
+            example: Apple
+        current_stock:
+            type: integer
+            example: 100
+        expiry_date:
+            type: string
+            example: 2021-05-01 12:00:00
+        category:
+            $ref: '#/components/schemas/category'
+    category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        category_name:
+          type: string
+          example: xyz
+        category_description:
+          type: string
+          example: xyz
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/product'
+    order:
+        type: object
+        properties:
+            id:
+                type: integer
+                example: 1
+            order_date:
+                type: string
+                example: 2021-05-01 12:00:00
+            quantity:
+                type: integer
+                example: 1
+            value:
+                type: number
+                example: 100.0
+            confirmed:
+                type: boolean
+                example: false
+            product:
+                $ref: '#/components/schemas/product'
+
+
+
