@@ -36,7 +36,7 @@ class UserSchema(Schema):
     username = fields.Str()
     email = fields.Email()
     password = fields.Str(load_only=True)
-    role_id = fields.Int(load_only=True,required=False)
+    role_id = fields.Int(load_only=True, required=False)
     role = fields.Nested("RoleSchema", exclude=('users',))
 
     @validates("password")
@@ -138,7 +138,9 @@ class ProductSchema(Schema):
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'rate', 'unit', 'description', 'current_stock', 'expiry_date', 'added_by', 'category_id', 'category')
+        fields = (
+            'id', 'name', 'rate', 'unit', 'description', 'current_stock',
+            'expiry_date', 'added_by', 'category_id', 'category')
         unknown = 'exclude'
 
     id = fields.Int(dump_only=True)
@@ -149,8 +151,8 @@ class ProductSchema(Schema):
     current_stock = fields.Int()
     expiry_date = fields.Date(format='%Y-%m-%d')
     added_by = fields.Int(load_only=True)  # added_by is the user id of the user who added the product
-    category_id = fields.Int(load_only=True,required=False)
-    category = fields.Nested('CategorySchema', exclude=('products','added_on','last_updated'))
+    category_id = fields.Int(load_only=True, required=False)
+    category = fields.Nested('CategorySchema', exclude=('products', 'added_on', 'last_updated'))
 
     @validates('added_by')
     def validate_added_by(self, added_by):
@@ -322,6 +324,7 @@ class OrderSchema(Schema):
             raise ValidationError("Quantity must be an integer")
         elif quantity <= 0:
             raise ValidationError("Quantity must be greater than zero")
+
     @post_load
     def make_order(self, data):
         try:
