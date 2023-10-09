@@ -24,8 +24,6 @@ def create_admin():
         db.session.commit()
         return make_response(jsonify({'message': 'Admin created successfully. Please login to continue'}, 201))
     except Exception as e:
-        # db.session.rollback()
-        # db.session.flush()
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
 
