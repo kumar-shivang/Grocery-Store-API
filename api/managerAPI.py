@@ -33,6 +33,9 @@ def create_manager():
 @jwt_required()
 def get_products():
     try:
+        current_user = User.query.get(get_jwt_identity())
+        if not current_user.role.role_name == 'manager':
+            return make_response(jsonify({'message': 'Forbidden'}), 403)
         products = Product.query.filter_by(added_by=get_jwt_identity()).all()
         if products:
             return make_response(jsonify({'message': 'Products fetched successfully',
@@ -71,6 +74,8 @@ def get_manager():
     try:
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=user_id).first()
+        if not user.role.role_name == 'manager':
+            return make_response(jsonify({'message': 'Forbidden'}), 403)
         products = Product.query.filter_by(added_by=user_id).all()
         user = user_schema.dump(user)
         user['products'] = ProductSchema().dump(products, many=True)
