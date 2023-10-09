@@ -184,9 +184,9 @@ paths:
                 schema:
                   type: object
                   properties:
-                      message:
-                        type: string
-                        example: Category "xyz" approved successfully
+                        message:
+                            type: string
+                            example: Category "xyz" approved successfully
         '400':
             description: Bad Request
             content:
@@ -353,9 +353,7 @@ paths:
                         type: array
                         items:
                           $ref: '#/components/schemas/category_request'
-                    message:
-                        type: string
-                        example: Category requests retrieved successfully
+
         '403':
             description: Forbidden
             content:
@@ -417,6 +415,147 @@ paths:
                   message:
                     type: string
                     example: Manager role not found
+  /manager:
+    get:
+      tags:
+        - manager
+      summary:
+        Get the data of the manager who is logged in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/token'
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    manager:
+                        $ref: '#/components/schemas/manager'
+
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Forbidden
+
+  /get_products:
+    get:
+      tags:
+        - manager
+        - product
+      summary:
+        Get all products managed by the manager who is logged in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/token'
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Products fetched successfully
+                    products:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/product'
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Forbidden
+        '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: No products found
+  /manager/request_category:
+        post:
+            tags:
+                - manager
+                - category
+            summary:
+                Request a new category
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: object
+                            properties:
+                                category_name:
+                                    type: string
+                                    example: xyz
+                                category_description:
+                                    type: string
+                                    example: xyz
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: Category requested successfully
+                '400':
+                    description: Bad Request
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: Bad request
+                '403':
+                    description: Forbidden
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    message:
+                                        type: string
+                                        example: Only managers can request categories
+
+
+
+
+
+
+
+
 components:
   schemas:
     category_request:
@@ -531,6 +670,25 @@ components:
         access_token:
           type: string
           example : eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+    manager:
+      allOf:
+        - $ref: '#/components/schemas/user'
+        - type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: '#/components/schemas/product'
+
+    customer:
+        allOf:
+            - $ref: '#/components/schemas/user'
+            - type: object
+              properties:
+                orders:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/order'
 
 
 
