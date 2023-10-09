@@ -5,3 +5,15 @@
 ./error.log
 ./test_notebook.ipynb
 **/__pycache__/
+/venv/
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/dataSources.xml
+/.idea/GroceryStoreBackend2.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+/database.sqlite
+/error.log
+/test_notebook.ipynb
