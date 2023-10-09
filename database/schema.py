@@ -364,7 +364,7 @@ class CategoryRequestSchema(Schema):
     id = fields.Int(dump_only=True)
     category_name = fields.Str()
     category_description = fields.Str()
-    added_on = fields.DateTime(default=datetime.utcnow)
+    added_on = fields.DateTime(dump_only=True)
     last_updated = fields.DateTime(dump_only=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
@@ -392,6 +392,7 @@ class CategoryRequestSchema(Schema):
             category_description = data.get('category_description')
             category_description = clean(category_description)
             data['category_description'] = category_description
+            data['added_on'] = datetime.utcnow()
             return CategoryRequest(**data)
         except TypeError as e:
             raise ValidationError(str(e))
