@@ -40,6 +40,27 @@ def place_order():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
+@order_blueprint.route('/get_order/<int:order_id>', methods=['GET'])
+@jwt_required()
+def get_order(order_id):
+    order_schema = OrderSchema(many=False)
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        order = Order.query.get(order_id)
+        if order:
+            if current_user.role.role_name == "user" and order.user_id == current_user.id:
+                return make_response(jsonify({'message': 'Order fetched successfully',
+                                              'order': order_schema.dump(order)}),
+                                     200)
+            else:
+                return make_response(jsonify({'message': 'You are not authorized to view this order'}), 403)
+        else:
+            return make_response(jsonify({'message': 'Order not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
 @order_blueprint.route('/get_orders', methods=['GET'])
 @jwt_required()
 def get_orders():

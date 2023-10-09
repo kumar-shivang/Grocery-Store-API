@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
-from database.schema import UserSchema
-from database.models import User
+from database.schema import UserSchema, OrderSchema
+from database.models import User, Order
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -29,7 +29,10 @@ def get_user():
     try:
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=user_id).first()
-        return make_response(jsonify(user_schema.dump(user)), 200)
+        user = user_schema.dump(user)
+        orders = Order.query.filter_by(user_id=user_id).all()
+        user['orders'] = OrderSchema(many=True).dump(orders)
+        return make_response(jsonify(user), 200)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
