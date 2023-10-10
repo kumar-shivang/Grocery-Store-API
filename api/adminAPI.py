@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
 from database.schema import UserSchema, CategoryRequestSchema
-from database.models import Role, User, CategoryRequest
+from database.models import Role, User, CategoryRequest, Category
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -84,6 +84,53 @@ def get_category_requests():
                                  200)
         else:
             return make_response(jsonify({'message': 'Category request list is empty'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/<int:category_id>', methods=['DELETE'])
+@jwt_required()
+def delete_category(category_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to delete categories'}), 403)
+        category = Category.query.get(category_id)
+        if category:
+            products = category.products
+            uncategorized = Category.query.filter_by(category_name='Uncategorized').first()
+            if products:
+                for product in products:
+                    product.category_id = uncategorized.id
+                db.session.add_all(products)
+            db.session.delete(category)
+            db.session.commit()
+            return make_response(jsonify({'message': 'Category deleted successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Category not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+@admin_blueprint.route('/update_category/<int:category_id>', methods=['PUT'])
+@jwt_required()
+def update_category(category_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to update categories'}), 403)
+        category = Category.query.get(category_id)
+        if category:
+            if 'category_name' in request.get_json():
+                category.category_name = request.get_json()['category_name']
+            if 'category_description' in request.get_json():
+                category.category_description = request.get_json()['category_description']
+            db.session.add(category)
+            db.session.commit()
+            return make_response(jsonify({'message': 'Category updated successfully'}), 200)
+        else:
+            make_response(jsonify({'message': 'Category not found'}), 404)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
