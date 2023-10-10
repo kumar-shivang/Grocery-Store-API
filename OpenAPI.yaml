@@ -281,6 +281,8 @@ paths:
     post:
       tags:
         - admin
+      summary:
+        Create a new admin (experimental)
       requestBody:
         required: true
         content:
@@ -368,6 +370,8 @@ paths:
     post:
       tags:
         - manager
+      summary:
+        Create a new manager
       requestBody:
         required: true
         content:
@@ -611,6 +615,8 @@ paths:
       tags:
         - manager
         - product
+      summary:
+        Delete a product
       parameters:
         - in: path
           name: product_id
@@ -670,6 +676,8 @@ paths:
       tags:
         - manager
         - product
+      summary:
+        Add stock to a product
       parameters:
         - in: path
           name: product_id
