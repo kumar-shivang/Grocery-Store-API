@@ -38,7 +38,7 @@ def create_product():
         db.session.commit()
         return make_response(jsonify({'message': 'Product created successfully',
                                       'product': product_schema.dump(product)}),
-                             201)
+                             200)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
@@ -56,7 +56,8 @@ def add_stock(product_id):
             quantity = body.get('quantity')
             if quantity:
                 product.add_stock(quantity)
-                return make_response(jsonify({'message': 'Stock added successfully'}), 200)
+                return make_response(jsonify({'message': 'Stock added successfully',
+                                              'product': ProductSchema().dump(product)}), 200)
             else:
                 return make_response(jsonify({'message': 'Quantity not provided'}), 400)
         else:
@@ -79,7 +80,9 @@ def update_price(product_id):
             price = body.get('price')
             if price:
                 product.update_price(price)
-                return make_response(jsonify({'message': 'Price updated successfully'}), 200)
+                return make_response(jsonify({'message': 'Price updated successfully',
+                                              'product': ProductSchema().dump(product)}
+                                             ), 200)
             else:
                 return make_response(jsonify({'message': 'Price not provided'}), 400)
         else:
@@ -102,7 +105,8 @@ def update_expiry_date(product_id):
             expiry_date = body.get('expiry_date')
             if expiry_date:
                 product.update_expiry_date(expiry_date)
-                return make_response(jsonify({'message': 'Expiry date updated successfully'}), 200)
+                return make_response(jsonify({'message': 'Expiry date updated successfully',
+                                              'product': ProductSchema().dump(product)}), 200)
             else:
                 return make_response(jsonify({'message': 'Expiry date not provided'}), 400)
         else:
