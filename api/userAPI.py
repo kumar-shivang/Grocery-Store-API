@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
-from database.schema import UserSchema, OrderSchema
-from database.models import User, Order
+from database.schema import UserSchema, OrderSchema, CategorySchema
+from database.models import User, Order, Category
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -33,6 +33,22 @@ def get_user():
         orders = Order.query.filter_by(user_id=user_id).all()
         user['orders'] = OrderSchema(many=True).dump(orders)
         return make_response(jsonify(user), 200)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@user_blueprint.route('/get_category/<int:category_id>', methods=['GET'])
+def get_category(category_id):
+    category_schema = CategorySchema(many=False)
+    try:
+        category = Category.query.get(category_id)
+        if category:
+            return make_response(jsonify({'message': 'Category fetched successfully',
+                                          'category': category_schema.dump(category)}),
+                                 200)
+        else:
+            return make_response(jsonify({'message': 'Category not found'}), 404)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
