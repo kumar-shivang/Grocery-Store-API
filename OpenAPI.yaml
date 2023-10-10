@@ -548,11 +548,326 @@ paths:
                                     message:
                                         type: string
                                         example: Only managers can request categories
+  /manager/create_product:
+    post:
+      tags:
+        - manager
+        - product
+      summary:
+        Create a new product
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: Apple
+                    rate:
+                        type: integer
+                        example: 100
+                    unit:
+                        type: string
+                        example: kg
+                    description:
+                        type: string
+                        example: Apple
+                    current_stock:
+                        type: integer
+                        example: 100
+                    expiry_date:
+                        type: string
+                        example: 2021-05-01
+                    category_id:
+                        type: integer
+                        example: 1
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Product created successfully
+                    product:
+                        $ref: '#/components/schemas/product'
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Bad request
+  /manager/delete_product/<int:product_id>:
+    delete:
+      tags:
+        - manager
+        - product
+      parameters:
+        - in: path
+          name: product_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the product to delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/token'
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Product deleted successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Bad request
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: You are not authorized to delete this product
+        '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Product not found
+  /manager/add_stock/<int:product_id>:
+    put:
+      tags:
+        - manager
+        - product
+      parameters:
+        - in: path
+          name: product_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the product to add stock to
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  example: 100
+                access_token:
+                  type: string
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+                  schema:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+                            example: Stock added successfully
+                        product:
+                            $ref: '#/components/schemas/product'
 
+        '400':
+            description: Bad Request
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+                            example: Bad request
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+                            example: You are not authorized to add stock to this product
+        '404':
+            description: Not Found
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                        message:
+                            type: string
+                            example: Product not found
+  /manager/update_price/<int:product_id>:
+    put:
+      tags:
+        - manager
+        - product
+      summary:
+        Update the price of a product
+      parameters:
+            - in: path
+              name: product_id
+              schema:
+                type: integer
+              required: true
+              description: The ID of the product to update the price of
+      requestBody:
+            required: true
+            content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                        rate:
+                            type: integer
+                            example: 100
+                        access_token:
+                            type: string
+                            example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+      responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                    schema:
+                      type: object
+                      properties:
+                          message:
+                              type: string
+                              example: Price updated successfully
+                          product:
+                              $ref: '#/components/schemas/product'
+          '400':
+                description: Bad Request
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                                type: string
+                                example: Bad request
+          '403':
+                description: Forbidden
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                                type: string
+                                example: You are not authorized to update the price of this product
+          '404':
+                description: Not Found
+                content:
+                    application/json:
+                        schema:
+                          type: object
+                          properties:
+                            message:
+                                type: string
+                                example: Product not found
+  /manager/update_expiry_date/<int:product_id>:
+    put:
+      tags:
+        - manager
+        - product
+      summary:
+        Update the expiry date of a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                expiry_date:
+                  type: string
+                  example: 2021-05-01
+                access_token:
+                  type: string
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
 
-
-
-
+      responses:
+        '200':
+            description: OK
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                example: Expiry date updated successfully
+                            product:
+                                $ref: '#/components/schemas/product'
+        '400':
+            description: Bad Request
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                example: Bad request
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                example: You are not authorized to update the expiry date of this product
+        '404':
+            description: Not Found
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                            message:
+                                type: string
+                                example: Product not found
 
 
 
