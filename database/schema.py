@@ -360,11 +360,14 @@ class CategoryRequestSchema(Schema):
 
     class Meta:
         model = CategoryRequest
-        fields = ('id', 'category_name', 'category_description', 'added_on', 'approved_at', 'approved')
+        fields = ('id','category_id' ,'category_name', 'category_description',
+                  'added_on', 'approved_at', 'approved','request_type')
 
     id = fields.Int(dump_only=True)
-    category_name = fields.Str()
-    category_description = fields.Str()
+    category_id = fields.Int(required=False, default=None)
+    category_name = fields.Str(required=False,default=None)
+    category_description = fields.Str(required=False, default=None)
+    request_type = fields.Str(required=True)
     added_on = fields.DateTime(dump_only=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
@@ -382,6 +385,16 @@ class CategoryRequestSchema(Schema):
     def validate_category_description(self, category_description):
         if len(category_description) < 10:
             raise ValidationError("Category description must be at least 10 characters long")
+
+    @validates('request_type')
+    def validate_request_type(self, request_type):
+        if request_type not in {'add', 'delete','update'}:
+            raise ValidationError("Request type must be one of 'add', 'delete','update'")
+
+    @validates('category_id')
+    def validate_category_id(self, category_id):
+        if not Category.query.filter_by(id=category_id).first():
+            raise ValidationError("Category with id {} does not exist".format(category_id))
 
     @post_load()
     def make_category_request(self, data):

@@ -266,8 +266,10 @@ class CategoryRequest(db.Model):
     """
     __tablename__ = 'category_request'
     id = db.Column(db.Integer, primary_key=True)
-    category_name = db.Column(db.String(100), unique=True)
-    category_description = db.Column(db.String(100))
+    category_id = db.Column(db.Integer, nullable=True)
+    category_name = db.Column(db.String(100), nullable=True)
+    category_description = db.Column(db.String(100), nullable=True)
+    request_type = db.Column(db.String(100), db.check_constraint('request_type in ("add", "remove", "update")'))
     added_on = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -282,10 +284,29 @@ class CategoryRequest(db.Model):
         return '<category_request {}>'.format(self.category_name)
 
     def approve(self):
-        self.approved = True
-        db.session.add(self)
-        db.session.commit()
-        return Category(self.category_name, self.category_description)
+        if self.approved:
+            raise ValueError("Request already approved")
+        elif self.request_type == "add":
+            category = Category(self.category_name, self.category_description)
+            db.session.add(category)
+            db.session.commit()
+        elif self.request_type == "edit":
+            category = Category.query.get(self.category_id)
+            if category:
+                category.category_name = self.category_name
+                category.category_description = self.category_description
+                category.update()
+                db.session.add(category)
+                db.session.commit()
+            else:
+                raise NoResultFound("Category does not exist")
+        elif self.request_type == "remove":
+            category = Category.query.get(self.category_id)
+            if category:
+                db.session.delete(category)
+                db.session.commit()
+            else:
+                raise NoResultFound("Category does not exist")
 
     def reject(self):
         db.session.delete(self)
