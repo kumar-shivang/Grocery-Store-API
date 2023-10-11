@@ -366,6 +366,148 @@ paths:
                       message:
                         type: string
                         example: You are not authorized to view category requests
+  /admin/delete_category/<int:category_id>:
+
+    delete:
+      tags:
+        - admin
+        - category
+      summary:
+        Delete a category
+      parameters:
+        - in: path
+          name: category_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the category to delete
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/token'
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category deleted successfully
+        '400':
+            description: Bad Request
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '403':
+            description: Forbidden
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: You are not authorized to delete this category
+        '404':
+            description: Not Found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                      message:
+                        type: string
+                        example: Category not found
+  /admin/update_category/<int:category_id>:
+    put:
+      tags:
+        - admin
+        - category
+      summary:
+        Update the name and/or description of a category
+      parameters:
+        - in: path
+          name: category_id
+          schema:
+            type: integer
+          required: true
+          description: The ID of the category to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                category_name:
+                  required: false
+                  type: string
+                  example: xyz
+                category_description:
+                  required: false
+                  type: string
+                  example: xyz
+                access_token:
+                  required: true
+                  type: string
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
+      responses:
+        '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    message:
+                        type: string
+                        example: Category updated successfully
+                    category:
+                        $ref: '#/components/schemas/category'
+        '400':
+          description: Bad Request
+          content:
+              application/json:
+                schema:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: Bad request
+        '403':
+            description: Forbidden
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: You are not authorized to update this category
+        '404':
+            description: Not Found
+            content:
+                application/json:
+                    schema:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            example: Category not found
+
+
+
+
   /manager/create_manager:
     post:
       tags:
