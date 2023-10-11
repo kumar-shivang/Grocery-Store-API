@@ -176,11 +176,13 @@ class Category(db.Model):
     category_description = db.Column(db.String(100))
     added_on = db.Column(db.DateTime, default=datetime.utcnow)
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     products = db.relationship('Product', backref='category', lazy='dynamic')
 
-    def __init__(self, category_name, category_description="Product Category"):
+    def __init__(self, category_name, category_description,added_by=None):
         self.category_name = category_name
         self.category_description = category_description
+        self.added_by = added_by
 
     def __repr__(self):
         return '<category {}>'.format(self.category_name)
@@ -287,7 +289,7 @@ class CategoryRequest(db.Model):
         if self.approved:
             raise ValueError("Request already approved")
         elif self.request_type == "add":
-            category = Category(self.category_name, self.category_description)
+            category = Category(self.category_name, self.category_description,self.user_id)
             db.session.add(category)
             db.session.commit()
         elif self.request_type == "edit":
@@ -303,6 +305,8 @@ class CategoryRequest(db.Model):
         elif self.request_type == "remove":
             category = Category.query.get(self.category_id)
             if category:
+                if category.added_by != self.user_id:
+                    raise ValueError("You are not authorized to request deletion of this category")
                 db.session.delete(category)
                 db.session.commit()
             else:

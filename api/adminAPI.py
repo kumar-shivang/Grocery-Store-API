@@ -28,7 +28,7 @@ def create_admin():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@admin_blueprint.route('/approve_category/<int:category_request_id>', methods=['PUT'])
+@admin_blueprint.route('/approve_request/<int:category_request_id>', methods=['PUT'])
 @jwt_required()
 def approve_category(category_request_id):
     try:
@@ -38,8 +38,6 @@ def approve_category(category_request_id):
         category_request = CategoryRequest.query.get(category_request_id)
         if category_request:
             category = category_request.approve()
-            db.session.add(category)
-            db.session.commit()
             return make_response(
                 jsonify({'message': 'Category {} approved successfully'.format(category.category_name)}), 200)
         else:
@@ -112,6 +110,7 @@ def delete_category(category_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
 
 @admin_blueprint.route('/update_category/<int:category_id>', methods=['PUT'])
 @jwt_required()
