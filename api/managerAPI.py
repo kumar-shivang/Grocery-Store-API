@@ -1,7 +1,9 @@
 from error_log import logger
 from database import db
 from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, ManagerRequestSchema
-from database.models import Product, Role, User
+from database.models import Product, User
+from mail import send_mail
+from mail.templates import manager_created
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -19,6 +21,10 @@ def create_manager_request():
             manager_request = manager_request_schema.load(body)
             db.session.add(manager_request)
             db.session.commit()
+            send_mail(subject='Manager Request Created',
+                      sender='admin@grocerystore.com',
+                      recipients=[manager_request.email],
+                      html_body=manager_created(manager_request.username))
             return make_response(jsonify({'message': 'Manager request created successfully, wait for approval'}), 200)
         else:
             return make_response(jsonify({'message': 'Only admins can create manager requests'}), 403)

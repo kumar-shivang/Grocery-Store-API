@@ -2,6 +2,8 @@ from error_log import logger
 from database import db
 from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema
 from database.models import Role, User, CategoryRequest, Category, ManagerCreationRequests
+from mail import send_mail
+from mail.templates import manager_approved, manager_rejected
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -165,6 +167,12 @@ def approve_manager(manager_request_id):
         manager_request = ManagerCreationRequests.query.get(manager_request_id)
         if manager_request:
             manager_request.approve()
+            send_mail(
+                'Manager Request Approved',
+                'admin@grocerystore.com',
+                [manager_request.email],
+                html_body=manager_approved(manager_request.user_id, manager_request.username)
+            )
             return make_response(jsonify({'message': 'Manager request approved successfully'}), 200)
         else:
             return make_response(jsonify({'message': 'Manager request not found'}), 404)
@@ -183,6 +191,12 @@ def reject_manager(manager_request_id):
         manager_request = ManagerCreationRequests.query.get(manager_request_id)
         if manager_request:
             manager_request.reject()
+            send_mail(
+                'Manager Request Rejected',
+                'admin@grocerystore.com',
+                [manager_request.email],
+                html_body=manager_rejected()
+            )
             return make_response(jsonify({'message': 'Manager request rejected successfully'}), 200)
         else:
             return make_response(jsonify({'message': 'Manager request not found'}), 404)
