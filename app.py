@@ -2,16 +2,14 @@ from flask import Flask, jsonify
 from api import init_api
 from database import init_database
 from config import Config
+from mail import init_mail
 
-# from authorization import init_auth
 
 app = Flask(__name__)
 app.config.from_object(Config)
 init_api(app)
 init_database(app)
-
-
-# init_auth(app)
+init_mail(app)
 
 
 @app.route('/')
