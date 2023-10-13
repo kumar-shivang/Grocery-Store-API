@@ -198,7 +198,7 @@ class Order(db.Model):
     Attributes:
     ----------
         - id (int): The ID of the order (primary key).
-        - order_date (datetime): The date and time when the order was placed.
+        - order_time (datetime): The date and time when the order was placed.
         - product_id (int): The ID of the product being ordered.
         - user_id (int): The ID of the user who placed the order.
         - confirmed (bool): Indicates whether the order has been confirmed or not.
@@ -214,7 +214,7 @@ class Order(db.Model):
     """
     __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
-    order_date = db.Column(db.DateTime, default=datetime.utcnow)
+    order_time = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     confirmed = db.Column(db.Boolean, default=False)
@@ -320,3 +320,34 @@ class CategoryRequest(db.Model):
     @staticmethod
     def new_requests():
         return CategoryRequest.query.filter_by(approved=False).all()
+
+
+class ManagerCreationRequests(db.Model):
+    __tablename__ = 'manager_creation_requests'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(256))
+    email = db.Column(db.String(100), unique=True)
+    approved = db.Column(db.Boolean, default=False)
+    approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.utcnow)
+
+    def __init__(self, username, password, email):
+        self.username = username
+        self.email = email
+        self.set_password(password)
+
+    def approve(self):
+        manager_role = Role.query.filter_by(role_name="manager").first()
+        if manager_role:
+            user = User(self.username, self.password, self.email, role_id=manager_role.id)
+            db.session.add(user)
+            db.session.commit()
+            return user
+        else:
+            raise NoResultFound("Manager role not found")
+
+    def reject(self):
+        db.session.delete(self)
+        db.session.commit()
+        return None
+

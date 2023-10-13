@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
-from database.schema import UserSchema, CategoryRequestSchema
-from database.models import Role, User, CategoryRequest, Category
+from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema
+from database.models import Role, User, CategoryRequest, Category, ManagerCreationRequests
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -133,3 +133,64 @@ def update_category(category_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/get_manager_requests', methods=['GET'])
+@jwt_required()
+def get_manager_requests():
+    manager_request_schema = ManagerRequestSchema(many=True)
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to view manager requests'}), 403)
+        manager_requests = ManagerCreationRequests.query.filter_by(approved=False).all()
+        if manager_requests:
+            return make_response(jsonify({'message': 'Manager requests fetched successfully',
+                                          'manager_requests': manager_request_schema.dump(manager_requests,
+                                                                                          many=True)}),200)
+        else:
+            return make_response(jsonify({'message': 'Manager request list is empty'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/approve_manager_request/<int:manager_request_id>', methods=['PUT'])
+@jwt_required()
+def approve_manager(manager_request_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to approve manager requests'}), 403)
+        manager_request = ManagerCreationRequests.query.get(manager_request_id)
+        if manager_request:
+            manager_request.approve()
+            return make_response(jsonify({'message': 'Manager request approved successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Manager request not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/reject_manager_request/<int:manager_request_id>', methods=['PUT'])
+@jwt_required()
+def reject_manager(manager_request_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to reject manager requests'}), 403)
+        manager_request = ManagerCreationRequests.query.get(manager_request_id)
+        if manager_request:
+            manager_request.reject()
+            return make_response(jsonify({'message': 'Manager request rejected successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Manager request not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+
+
+

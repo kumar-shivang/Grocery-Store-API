@@ -1,7 +1,7 @@
 import bleach
 from datetime import datetime
 from marshmallow import Schema, fields, ValidationError, validates, post_load
-from .models import User, Product, Category, Order, Role, CategoryRequest
+from .models import User, Product, Category, Order, Role, CategoryRequest, ManagerCreationRequests
 
 
 def clean(string):
@@ -407,5 +407,57 @@ class CategoryRequestSchema(Schema):
             data['category_description'] = category_description
             data['added_on'] = datetime.utcnow()
             return CategoryRequest(**data)
+        except TypeError as e:
+            raise ValidationError(str(e))
+
+
+class ManagerRequestSchema(Schema):
+    class Meta:
+        model = ManagerCreationRequests
+        fields = ('id', 'username', 'email', 'password', 'added_on', 'approved_at', 'approved')
+
+    id = fields.Int(dump_only=True)
+    username = fields.Str(required=True)
+    email = fields.Email(required=True)
+    password = fields.Str(required=True)
+    added_on = fields.DateTime(dump_only=True)
+    approved_at = fields.DateTime(dump_only=True)
+    approved = fields.Boolean(dump_only=True)
+
+    @validates('username')
+    def validate_username(self, username):
+        username = clean(username)
+        if len(username) < 6:
+            raise ValidationError("Username must be at least 6 characters long")
+        elif username[0].isdigit():
+            raise ValidationError("Username must start with a letter")
+        elif not username.isalnum():
+            raise ValidationError("Username must only contain letters and numbers")
+        elif User.query.filter_by(username=username).first():
+            raise ValidationError("Username already exists")
+
+    @validates('email')
+    def validate_email(self, email):
+        if User.query.filter_by(email=email).first():
+            raise ValidationError("Email already exists")
+
+    @validates('password')
+    def validate_password(self, password):
+        if len(password) < 8:
+            raise ValidationError("Password must be at least 8 characters long")
+        elif not any(char.isdigit() for char in password):
+            raise ValidationError("Password must contain at least one digit")
+        elif not any(char.isupper() for char in password):
+            raise ValidationError("Password must contain at least one uppercase character")
+        elif not any(char.islower() for char in password):
+            raise ValidationError("Password must contain at least one lowercase character")
+
+    @post_load()
+    def make_manager_request(self, data):
+        try:
+            username = data.get('username')
+            username = clean(username)
+            data['username'] = username
+            return ManagerCreationRequests(**data)
         except TypeError as e:
             raise ValidationError(str(e))

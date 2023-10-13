@@ -1,6 +1,6 @@
 from error_log import logger
 from database import db
-from database.schema import ProductSchema, UserSchema, CategoryRequestSchema
+from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, ManagerRequestSchema
 from database.models import Product, Role, User
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -8,23 +8,21 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 manager_blueprint = Blueprint('manager', __name__)
 
 
-@manager_blueprint.route('/create_manager', methods=['POST'])
-def create_manager():
-    user_schema = UserSchema(many=False)
+@manager_blueprint.route('/create_manager_request', methods=['POST'])
+@jwt_required()
+def create_manager_request():
+    manager_request_schema = ManagerRequestSchema(many=False)
     try:
-        body = request.get_json()
-        manager_role = Role.query.filter_by(role_name='manager').first()
-        if manager_role:
-            body['role_id'] = manager_role.id
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == 'admin':
+            body = request.get_json()
+            manager_request = manager_request_schema.load(body)
+            db.session.add(manager_request)
+            db.session.commit()
+            return make_response(jsonify({'message': 'Manager request created successfully, wait for approval'}), 200)
         else:
-            return make_response(jsonify({'message': 'Manager role not found'}), 404)
-        user = user_schema.load(body)
-        db.session.add(user)
-        db.session.commit()
-        return make_response(jsonify({'message': 'Manager created successfully. Please login to continue'}, 201))
+            return make_response(jsonify({'message': 'Only admins can create manager requests'}), 403)
     except Exception as e:
-        # db.session.rollback()
-        # db.session.flush()
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
 
