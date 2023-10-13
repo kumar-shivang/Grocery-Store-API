@@ -4,7 +4,6 @@ from database import init_database
 from config import Config
 from mail import init_mail
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 init_api(app)
