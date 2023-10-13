@@ -271,7 +271,7 @@ class CategoryRequest(db.Model):
     category_id = db.Column(db.Integer, nullable=True)
     category_name = db.Column(db.String(100), nullable=True)
     category_description = db.Column(db.String(100), nullable=True)
-    request_type = db.Column(db.String(100), db.check_constraint('request_type in ("add", "remove", "update")'))
+    request_type = db.Column(db.String(100), db.CheckConstraint('request_type in ("add", "update", "remove")'))
     added_on = db.Column(db.DateTime, default=datetime.utcnow)
     approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
