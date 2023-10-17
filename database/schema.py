@@ -12,6 +12,17 @@ def clean(string):
     return string
 
 
+def validate_password(password):
+    if len(password) < 8:
+        raise ValidationError("Password must be at least 8 characters long")
+    elif not any(char.isdigit() for char in password):
+        raise ValidationError("Password must contain at least one digit")
+    elif not any(char.isupper() for char in password):
+        raise ValidationError("Password must contain at least one uppercase character")
+    elif not any(char.islower() for char in password):
+        raise ValidationError("Password must contain at least one lowercase character")
+
+
 class UserSchema(Schema):
     """
     :class:`UserSchema` class for serializing and deserializing User objects.
@@ -41,15 +52,8 @@ class UserSchema(Schema):
     role = fields.Nested("RoleSchema", exclude=('users',))
 
     @validates("password")
-    def validate_password(self, password):
-        if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long")
-        elif not any(char.isdigit() for char in password):
-            raise ValidationError("Password must contain at least one digit")
-        elif not any(char.isupper() for char in password):
-            raise ValidationError("Password must contain at least one uppercase character")
-        elif not any(char.islower() for char in password):
-            raise ValidationError("Password must contain at least one lowercase character")
+    def validate_pass(self, password):
+        validate_password(password)
 
     @validates("username")
     def validate_username(self, username):
@@ -361,12 +365,12 @@ class CategoryRequestSchema(Schema):
 
     class Meta:
         model = CategoryRequest
-        fields = ('id','category_id' ,'category_name', 'category_description',
-                  'added_on', 'approved_at', 'approved','request_type')
+        fields = ('id', 'category_id', 'category_name', 'category_description',
+                  'added_on', 'approved_at', 'approved', 'request_type')
 
     id = fields.Int(dump_only=True)
     category_id = fields.Int(required=False, default=None)
-    category_name = fields.Str(required=False,default=None)
+    category_name = fields.Str(required=False, default=None)
     category_description = fields.Str(required=False, default=None)
     request_type = fields.Str(required=True)
     added_on = fields.DateTime(dump_only=True)
@@ -389,7 +393,7 @@ class CategoryRequestSchema(Schema):
 
     @validates('request_type')
     def validate_request_type(self, request_type):
-        if request_type not in {'add', 'delete','update'}:
+        if request_type not in {'add', 'delete', 'update'}:
             raise ValidationError("Request type must be one of 'add', 'delete','update'")
 
     @validates('category_id')
@@ -432,6 +436,7 @@ class ManagerRequestSchema(Schema):
         - validate_password(password): Validates the password field.
 
     """
+
     class Meta:
         model = ManagerCreationRequests
         fields = ('id', 'username', 'email', 'password', 'added_on', 'approved_at', 'approved')
@@ -462,15 +467,8 @@ class ManagerRequestSchema(Schema):
             raise ValidationError("Email already exists")
 
     @validates('password')
-    def validate_password(self, password):
-        if len(password) < 8:
-            raise ValidationError("Password must be at least 8 characters long")
-        elif not any(char.isdigit() for char in password):
-            raise ValidationError("Password must contain at least one digit")
-        elif not any(char.isupper() for char in password):
-            raise ValidationError("Password must contain at least one uppercase character")
-        elif not any(char.islower() for char in password):
-            raise ValidationError("Password must contain at least one lowercase character")
+    def validate_pass(self, password):
+        validate_password(password)
 
     @post_load()
     def make_manager_request(self, data):
@@ -485,8 +483,17 @@ class ManagerRequestSchema(Schema):
 
 class ProductImageSchema(Schema):
     """
+    :class:`ProductImageSchema` class for serializing and deserializing ProductImage objects.
 
+    Attributes
+        - id (Int, optional): The ID of the product image. (read-only)
+        - image_name (Str): The name of the product image.
+
+    Methods
+        - validate_image_name(image_name): Validates the image_name field.
+        - make_product_image(data): Creates a ProductImage object from the serialized data.
     """
+
     class Meta:
         model = ProductImage
         fields = ('id', 'image_name')
@@ -515,6 +522,3 @@ class ProductImageSchema(Schema):
             return ProductImage(**data)
         except TypeError as e:
             raise ValidationError(str(e))
-
-
-
