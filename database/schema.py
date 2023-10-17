@@ -1,7 +1,8 @@
 import bleach
 from datetime import datetime
 from marshmallow import Schema, fields, ValidationError, validates, post_load
-from .models import User, Product, Category, Order, Role, CategoryRequest, ManagerCreationRequests
+from .models import (User, Role, Product, Category, Order, CategoryRequest,
+                     ManagerCreationRequests, ProductImage)
 
 
 def clean(string):
@@ -412,6 +413,25 @@ class CategoryRequestSchema(Schema):
 
 
 class ManagerRequestSchema(Schema):
+    """
+    :class:`ManagerRequestSchema` class for serializing and deserializing ManagerCreationRequests objects.
+
+    Attributes
+        - id (Int, optional): The ID of the manager request. (read-only)
+        - username (Str): The username of the manager requested.
+        - email (Email): The email address of the manager requested.
+        - password (Str, write-only): The password of the manager requested.
+        - added_on (DateTime, optional): The datetime when the manager request was made. (read-only)
+        - approved_at (DateTime, optional): The datetime when the manager request was approved. (read-only)
+        - approved (Boolean, optional): Indicates whether the manager request is approved or not. (read-only)
+
+
+    Methods
+        - validate_username(username): Validates the username field.
+        - validate_email(email): Validates the email field.
+        - validate_password(password): Validates the password field.
+
+    """
     class Meta:
         model = ManagerCreationRequests
         fields = ('id', 'username', 'email', 'password', 'added_on', 'approved_at', 'approved')
@@ -461,3 +481,40 @@ class ManagerRequestSchema(Schema):
             return ManagerCreationRequests(**data)
         except TypeError as e:
             raise ValidationError(str(e))
+
+
+class ProductImageSchema(Schema):
+    """
+
+    """
+    class Meta:
+        model = ProductImage
+        fields = ('id', 'image_name')
+
+    id = fields.Int(dump_only=True)
+    image_name = fields.Str(required=True)
+
+    @validates('image_name')
+    def validate_image_name(self, image_name):
+        image_name = clean(image_name)
+        if len(image_name) < 6:
+            raise ValidationError("Image name must be at least 6 characters long")
+        elif image_name[0].isdigit():
+            raise ValidationError("Image name must start with a letter")
+        elif not image_name.isalnum():
+            raise ValidationError("Image name must only contain letters and numbers")
+        elif ProductImage.query.filter_by(image_name=image_name).first():
+            raise ValidationError("Image name already exists")
+
+    @post_load()
+    def make_product_image(self, data):
+        try:
+            image_name = data.get('image_name')
+            image_name = clean(image_name)
+            data['image_name'] = image_name
+            return ProductImage(**data)
+        except TypeError as e:
+            raise ValidationError(str(e))
+
+
+

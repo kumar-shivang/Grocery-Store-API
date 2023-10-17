@@ -113,6 +113,8 @@ class Product(db.Model):
     expiry_date = db.Column(db.Date())
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'))
+    image = db.relationship('ProductImage', backref='product', lazy='dynamic')
 
     def __init__(self, name, rate, unit, description, added_by, category_id,
                  expiry_date=None, current_stock=0):
@@ -350,4 +352,32 @@ class ManagerCreationRequests(db.Model):
         db.session.delete(self)
         db.session.commit()
         return None
+
+
+class ProductImage(db.Model):
+    """
+    :class:`ProductImage` class represents a product image in the system.
+    Each image can be assigned to more than one product.
+    All images are saved in the ./static/images directory, so name is enough to identify the image.
+
+    Attributes:
+    ----------
+        - id (int): The ID of the product image (primary key).
+        - image_name (str): The name of the image.
+
+    Methods:
+    -------
+        - __init__(image_name): Initializes a new instance of the ProductImage class.
+        - __repr__(): Returns a string representation of the ProductImage object.
+    """
+
+    __tablename__ = 'product_image'
+    id = db.Column(db.Integer, primary_key=True)
+    image_name = db.Column(db.String(100))
+
+    def __init__(self, image_name):
+        self.image_name = image_name
+
+    def __repr__(self):
+        return '<product_image {}>'.format(self.image_name)
 
