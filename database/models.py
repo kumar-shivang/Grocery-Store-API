@@ -114,7 +114,7 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'))
-    image = db.relationship('ProductImage', backref='product', lazy='dynamic')
+    image = db.relationship('ProductImage', backref='products')
 
     def __init__(self, name, rate, unit, description, added_by, category_id,
                  expiry_date=None, current_stock=0):
