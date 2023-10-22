@@ -1,6 +1,7 @@
 import pyhtml as h
 
-def manager_created(username:str):
+
+def manager_created(username: str):
     msg = h.html(
         h.head(
             h.h1('Manager Request Created')
@@ -16,7 +17,7 @@ def manager_created(username:str):
     return msg.render()
 
 
-def manager_approved(user_id:int, username:str):
+def manager_approved(user_id: int, username: str):
     msg = h.html(
         h.head(
             h.h1('Manager Approved')
@@ -48,7 +49,7 @@ def manager_rejected():
     return msg.render()
 
 
-def category_created(category_name:str):
+def category_created(category_name: str):
     msg = h.html(
         h.head(
             h.h1('Category Request Created')
@@ -65,7 +66,7 @@ def category_created(category_name:str):
     return msg.render()
 
 
-def category_approved(category_name:str):
+def category_approved(category_name: str):
     msg = h.html(
         h.head(
             h.h1('Category Approved')
@@ -94,8 +95,3 @@ def category_rejected():
     )
 
     return msg.render()
-
-
-
-
-
