@@ -1,8 +1,13 @@
+import PIL
 import bleach
 from datetime import datetime
 from marshmallow import Schema, fields, ValidationError, validates, post_load
 from .models import (User, Role, Product, Category, Order, CategoryRequest,
                      ManagerCreationRequests, ProductImage)
+from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
+from uuid import uuid1
+from PIL import Image
 
 
 def clean(string):
@@ -127,6 +132,8 @@ class ProductSchema(Schema):
         - added_by (Int, write-only): The ID of the user who added the product.
         - category_id (Int, write-only): The ID of the category to which the product belongs.
         - category (CategorySchema): The category to which the product belongs.
+        - image_id (Int, write-only): The ID of the image of the product.
+        - image (ProductImageSchema): The image of the product.
 
     Methods
         - validate_name(name): Validates the name field.
@@ -145,7 +152,8 @@ class ProductSchema(Schema):
         model = Product
         fields = (
             'id', 'name', 'rate', 'unit', 'description', 'current_stock',
-            'expiry_date', 'added_by', 'category_id', 'category')
+            'expiry_date', 'added_by', 'category_id', 'category',
+            'image_id', 'image')
         unknown = 'exclude'
 
     id = fields.Int(dump_only=True)
@@ -158,6 +166,8 @@ class ProductSchema(Schema):
     added_by = fields.Int(load_only=True)  # added_by is the user id of the user who added the product
     category_id = fields.Int(load_only=True, required=False)
     category = fields.Nested('CategorySchema', exclude=('products', 'added_on', 'last_updated'))
+    image_id = fields.Int(load_only=True, required=False)
+    image = fields.Nested('ProductImageSchema', exclude=('products',))
 
     @validates('added_by')
     def validate_added_by(self, added_by):
@@ -488,9 +498,11 @@ class ProductImageSchema(Schema):
     Attributes
         - id (Int, optional): The ID of the product image. (read-only)
         - image_name (Str): The name of the product image.
+        - image_path (Str, optional): The path of the product image. (read-only)
+        - image_file (FileStorage, write-only): The file object of the product image.
 
     Methods
-        - validate_image_name(image_name): Validates the image_name field.
+        - validate_image_file(image_file): Validates the image_file field.
         - make_product_image(data): Creates a ProductImage object from the serialized data.
     """
 
@@ -499,26 +511,54 @@ class ProductImageSchema(Schema):
         fields = ('id', 'image_name')
 
     id = fields.Int(dump_only=True)
-    image_name = fields.Str(required=True)
+    image_name = fields.Str(dump_only=True)
+    image_path = fields.Method('get_image_path', dump_only=True)
+    image_file = fields.Raw(load_only=True, type='file')
 
-    @validates('image_name')
-    def validate_image_name(self, image_name):
-        image_name = clean(image_name)
-        if len(image_name) < 6:
-            raise ValidationError("Image name must be at least 6 characters long")
-        elif image_name[0].isdigit():
-            raise ValidationError("Image name must start with a letter")
-        elif not image_name.isalnum():
-            raise ValidationError("Image name must only contain letters and numbers")
-        elif ProductImage.query.filter_by(image_name=image_name).first():
-            raise ValidationError("Image name already exists")
+    @validates('image_file')
+    def validate_image_file(self, image_file: FileStorage) -> None:
+        """
+        Validates the image_file field.
+        :param image_file: The image file to be validated.
+        :return: Product Image object
+
+        image_file is the file object of the image to be uploaded. It will come from the request.files object,
+        so we can use all the attributes and methods of the FileStorage class.
+
+        """
+        accepted_formats = ['jpg', 'jpeg', 'png', 'webp']
+        accepted_content_types = ['image/jpeg', 'image/png', 'image/webp']
+        if not image_file:
+            raise ValidationError("Image file is required")
+        elif image_file.filename == '':
+            raise ValidationError("Image file is required")
+        elif image_file.content_type not in accepted_content_types:
+            raise ValidationError("Image file must be one of {}".format(accepted_formats))
+        elif image_file.filename.split('.')[-1] not in accepted_formats:
+            raise ValidationError("Image file must be one of {}".format(accepted_formats))
+        elif image_file.content_length > 2 * 1024 * 1024:
+            raise ValidationError("Image file must be less than 2MB")
+
+    @staticmethod
+    def get_image_path(obj):
+        return 'static/images/{}'.format(obj.image_name)
 
     @post_load()
     def make_product_image(self, data):
         try:
-            image_name = data.get('image_name')
-            image_name = clean(image_name)
+            image_file = data.get('image_file')
+            # uuid1().hex is a unique string which is usually safe, but we use secure_filename() to be extra safe
+            image_name = secure_filename(uuid1().hex) + 'png'
+            image = Image.open(image_file)
+            image.convert('RGB')
+            image.thumbnail((300, 300))
+            image.save('static/images/{}'.format(image_name))
             data['image_name'] = image_name
+            data.pop('image_file')
             return ProductImage(**data)
+        except PIL.UnidentifiedImageError as e:
+            raise ValidationError("Image file must be one of {}".format(['jpg', 'jpeg', 'png', 'webp']))
         except TypeError as e:
+            raise ValidationError(str(e))
+        except Exception as e:
             raise ValidationError(str(e))
