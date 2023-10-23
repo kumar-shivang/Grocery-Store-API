@@ -166,7 +166,7 @@ class ProductSchema(Schema):
     added_by = fields.Int(load_only=True)  # added_by is the user id of the user who added the product
     category_id = fields.Int(load_only=True, required=False)
     category = fields.Nested('CategorySchema', exclude=('products', 'added_on', 'last_updated'))
-    image_id = fields.Int(load_only=True, required=False)
+    image_id = fields.Int(load_only=True, required=False, default=1)
     image = fields.Nested('ProductImageSchema', exclude=('products',))
 
     @validates('added_by')
@@ -214,6 +214,12 @@ class ProductSchema(Schema):
     def validate_current_stock(self, current_stock):
         if current_stock < 0:
             raise ValidationError("Current stock cannot be negative")
+
+    @validates('image_id')
+    def validate_image_id(self, image_id):
+        if not ProductImage.query.filter_by(id=image_id).first():
+            raise ValidationError("Image with id {} does not exist".format(image_id))
+        
 
     @post_load()
     def make_product(self, data, **kwargs):
