@@ -549,7 +549,7 @@ class ProductImageSchema(Schema):
             image_file = data.get('image_file')
             # uuid1().hex is a unique string which is usually safe, but we use secure_filename() to be extra safe
             image_name = secure_filename(uuid1().hex) + 'png'
-            image = Image.open(image_file)
+            image = Image.open(image_file.stream)
             image.convert('RGB')
             image.thumbnail((300, 300))
             image.save('static/images/{}'.format(image_name))
