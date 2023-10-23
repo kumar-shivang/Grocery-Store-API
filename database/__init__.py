@@ -30,23 +30,22 @@ def init_database(app):
             print("Manager role created")
 
         if not User.query.filter_by(username='admin').first():
-            admin = User('admin', 'password123', 'admin@localhost', Role.query.filter_by(role_name='admin').first().id)
+            admin = User('admin', 'Password123', 'admin@localhost', Role.query.filter_by(role_name='admin').first().id)
             db.session.add(admin)
             db.session.commit()
             print("Admin user created")
+            print("Admin Username: admin")
+            print("Admin Password: \033[91m{}\033[0m".format('Password123'))
 
         if not Category.query.filter_by(category_name='Uncategorized').first():
             uncategorized = Category('Uncategorized', 'Default category for products')
             db.session.add(uncategorized)
             db.session.commit()
-            print("Uncategorized category created")
+            print(f"Uncategorized category created with id {uncategorized.id}")
 
         if not ProductImage.query.filter_by(image_name='default.png').first():
             default_image = ProductImage('default.png')
             db.session.add(default_image)
             db.session.commit()
-            print("Default image created")
+            print(f"Default image created with id {default_image.id}.")
 
-        print("Admin Username: admin")
-        print("Admin Password: \033[91m{}\033[0m".format('password123'))
-        # print("userSchema: ", UserSchema().load_fields)
