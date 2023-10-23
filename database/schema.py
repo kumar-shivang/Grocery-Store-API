@@ -219,7 +219,6 @@ class ProductSchema(Schema):
     def validate_image_id(self, image_id):
         if not ProductImage.query.filter_by(id=image_id).first():
             raise ValidationError("Image with id {} does not exist".format(image_id))
-        
 
     @post_load()
     def make_product(self, data, **kwargs):
