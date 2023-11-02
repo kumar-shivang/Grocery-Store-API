@@ -1,12 +1,15 @@
 from error_log import logger
 from flask import Blueprint
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 
 api = Blueprint('api', __name__)
 jwt = JWTManager()
+cors = CORS(resources={r"/api/*": {"origins": "*"}})
 
 
 def init_api(app):
+    cors.init_app(app)
     from .userAPI import user_blueprint
     from .loginAPI import login_blueprint
     from .productAPI import manager_blueprint
