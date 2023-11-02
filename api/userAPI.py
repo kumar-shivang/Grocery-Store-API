@@ -1,7 +1,7 @@
 from error_log import logger
 from database import db
 from database.schema import UserSchema, OrderSchema, CategorySchema
-from database.models import User, Order, Category
+from database.models import User, Order, Category, Role
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
@@ -13,6 +13,8 @@ def create_user():
     user_schema = UserSchema()
     try:
         body = request.get_json()
+        role_id = Role.query.filter_by(role_name='user').first().id
+        body['role_id'] = role_id
         user = user_schema.load(body)
         db.session.add(user)
         db.session.commit()
