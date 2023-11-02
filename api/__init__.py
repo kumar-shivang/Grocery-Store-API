@@ -5,11 +5,10 @@ from flask_cors import CORS
 
 api = Blueprint('api', __name__)
 jwt = JWTManager()
-cors = CORS(resources={r"/api/*": {"origins": "*"}})
+cors = CORS()
 
 
 def init_api(app):
-    cors.init_app(app)
     from .userAPI import user_blueprint
     from .loginAPI import login_blueprint
     from .productAPI import manager_blueprint
@@ -22,6 +21,7 @@ def init_api(app):
     api.register_blueprint(image_blueprint, url_prefix='/image')
     app.register_blueprint(api, url_prefix='/api')
     jwt.init_app(app)
+    cors.init_app(app)
 
 
 def validate_user_credentials(body: dict):
