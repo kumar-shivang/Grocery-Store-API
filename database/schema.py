@@ -94,7 +94,7 @@ class UserSchema(Schema):
         except TypeError as e:
             raise ValidationError(str(e))
         finally:
-            print(kwargs)
+            del kwargs
 
 
 class RoleSchema(Schema):
