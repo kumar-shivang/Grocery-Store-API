@@ -1,11 +1,9 @@
 from error_log import logger
 from flask import Blueprint
 from flask_jwt_extended import JWTManager
-from flask_cors import CORS
 
 api = Blueprint('api', __name__)
 jwt = JWTManager()
-cors = CORS()
 
 
 def init_api(app):
@@ -21,7 +19,6 @@ def init_api(app):
     api.register_blueprint(image_blueprint, url_prefix='/image')
     app.register_blueprint(api, url_prefix='/api')
     jwt.init_app(app)
-    cors.init_app(app)
 
 
 def validate_user_credentials(body: dict):
