@@ -91,7 +91,7 @@ class UserSchema(Schema):
             username = clean(username)
             data['username'] = username
             return User(**data)
-        except TypeError as e:
+        except Exception as e:
             raise ValidationError(str(e))
         finally:
             del kwargs
