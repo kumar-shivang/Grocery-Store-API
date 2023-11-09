@@ -11,23 +11,18 @@ manager_blueprint = Blueprint('manager', __name__)
 
 
 @manager_blueprint.route('/create_manager_request', methods=['POST'])
-@jwt_required()
 def create_manager_request():
     manager_request_schema = ManagerRequestSchema(many=False)
     try:
-        current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name == 'admin':
-            body = request.get_json()
-            manager_request = manager_request_schema.load(body)
-            db.session.add(manager_request)
-            db.session.commit()
-            send_mail(subject='Manager Request Created',
-                      sender='admin@grocerystore.com',
-                      recipients=[manager_request.email],
-                      html_body=manager_created(manager_request.username))
-            return make_response(jsonify({'message': 'Manager request created successfully, wait for approval'}), 200)
-        else:
-            return make_response(jsonify({'message': 'Only admins can create manager requests'}), 403)
+        body = request.get_json()
+        manager_request = manager_request_schema.load(body)
+        db.session.add(manager_request)
+        db.session.commit()
+        send_mail(subject='Manager Request Created',
+                  sender='admin@grocerystore.com',
+                  recipients=[manager_request.email],
+                  html_body=manager_created(manager_request.username))
+        return make_response(jsonify({'message': 'Manager request created successfully, wait for approval'}), 200)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
