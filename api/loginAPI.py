@@ -46,7 +46,7 @@ def manager_login():
         user = User.query.filter_by(username=body['username']).first()
         if not user:
             return make_response(jsonify({'message': 'User does not exist'}), 404)
-        elif ManagerCreationRequests.query.filter_by(username=body['username']).first():
+        elif ManagerCreationRequests.query.filter_by(approved=False).filter_by(username=body['username']).first():
             return make_response(jsonify({'message': 'Manager request is pending, wait for approval'}), 404)
         elif not user.role.role_name == 'manager':
             return make_response(jsonify({'message': 'Only managers can login here.'}), 403)
