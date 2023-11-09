@@ -475,11 +475,18 @@ class ManagerRequestSchema(Schema):
             raise ValidationError("Username must only contain letters and numbers")
         elif User.query.filter_by(username=username).first():
             raise ValidationError("Username already exists")
+        elif ManagerCreationRequests.query.filter_by(username=username).first():
+            raise ValidationError("Manager request with username {} already exists,"
+                                  "wait for admin approval".format(username))
+
 
     @validates('email')
     def validate_email(self, email):
         if User.query.filter_by(email=email).first():
-            raise ValidationError("Email already exists")
+            raise ValidationError("User with email {} already exists".format(email))
+        elif ManagerCreationRequests.query.filter_by(email=email).first():
+            raise ValidationError("Manager request with email {} already exists,"
+                                  "wait for admin approval".format(email))
 
     @validates('password')
     def validate_pass(self, password):
