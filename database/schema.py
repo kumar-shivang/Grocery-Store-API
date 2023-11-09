@@ -459,7 +459,7 @@ class ManagerRequestSchema(Schema):
     id = fields.Int(dump_only=True)
     username = fields.Str(required=True)
     email = fields.Email(required=True)
-    password = fields.Str(required=True)
+    password = fields.Str(required=True, load_only=True)
     added_on = fields.DateTime(dump_only=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
@@ -486,7 +486,7 @@ class ManagerRequestSchema(Schema):
         validate_password(password)
 
     @post_load()
-    def make_manager_request(self, data):
+    def make_manager_request(self, data, **kwargs):
         try:
             username = data.get('username')
             username = clean(username)
@@ -494,6 +494,10 @@ class ManagerRequestSchema(Schema):
             return ManagerCreationRequests(**data)
         except TypeError as e:
             raise ValidationError(str(e))
+        except Exception as e:
+            raise ValidationError(str(e))
+        finally:
+            del kwargs
 
 
 class ProductImageSchema(Schema):
