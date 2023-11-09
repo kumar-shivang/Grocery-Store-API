@@ -336,7 +336,7 @@ class ManagerCreationRequests(db.Model):
     def __init__(self, username, password, email):
         self.username = username
         self.email = email
-        self.set_password(password)
+        self.password = password
 
     def approve(self):
         manager_role = Role.query.filter_by(role_name="manager").first()
@@ -352,6 +352,7 @@ class ManagerCreationRequests(db.Model):
         db.session.delete(self)
         db.session.commit()
         return None
+
 
 
 class ProductImage(db.Model):
