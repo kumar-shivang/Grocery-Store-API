@@ -44,16 +44,17 @@ def manager_login():
     try:
         body = request.get_json()
         user = User.query.filter_by(username=body['username']).first()
+        manager_request = ManagerCreationRequests.query.filter_by(username=body['username']).first()
         if not user:
-            return make_response(jsonify({'message': 'User does not exist'}), 404)
-        elif ManagerCreationRequests.query.filter_by(approved=False).filter_by(username=body['username']).first():
-            return make_response(jsonify({'message': 'Manager request is pending, wait for approval'}), 404)
-        elif not user.role.role_name == 'manager':
-            return make_response(jsonify({'message': 'Only managers can login here.'}), 403)
-        elif not user.check_password(body['password']):
+            if not manager_request:
+                return make_response(jsonify({'message': 'User does not exist'}), 404)
+            else:
+                return make_response(jsonify({'message': 'Manager request is pending approval'}), 403)
+        if not user.check_password(body['password']):
             return make_response(jsonify({'message': 'Password is incorrect'}), 400)
-        else:
-            access_token = create_access_token(identity=user.id)
+        if not user.role.role_name == 'manager':
+            return make_response(jsonify({'message': 'Only managers can login here.'}), 403)
+        access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token)
     except Exception as e:
         logger.error(e)
