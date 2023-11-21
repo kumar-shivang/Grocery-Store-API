@@ -97,7 +97,7 @@ def delete_category(category_id):
         if current_user.role.role_name != 'admin':
             return make_response(jsonify({'message': 'You are not authorized to delete categories'}), 403)
         category = Category.query.get(category_id)
-        if category:
+        if category and category.category_name != 'Uncategorized':
             products = category.products
             uncategorized = Category.query.filter_by(category_name='Uncategorized').first()
             if products:
@@ -107,6 +107,8 @@ def delete_category(category_id):
             db.session.delete(category)
             db.session.commit()
             return make_response(jsonify({'message': 'Category deleted successfully'}), 200)
+        elif category and category.category_name == 'Uncategorized':
+            return make_response(jsonify({'message': 'Cannot delete Uncategorized category'}), 403)
         else:
             return make_response(jsonify({'message': 'Category not found'}), 404)
     except Exception as e:
