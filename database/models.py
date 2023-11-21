@@ -342,6 +342,8 @@ class ManagerCreationRequests(db.Model):
         manager_role = Role.query.filter_by(role_name="manager").first()
         if manager_role:
             user = User(self.username, self.password, self.email, role_id=manager_role.id)
+            self.approved = True
+            self.approved_at = datetime.now()
             db.session.add(user)
             db.session.commit()
             return user
