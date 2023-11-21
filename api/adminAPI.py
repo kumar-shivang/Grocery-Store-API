@@ -1,6 +1,6 @@
 from error_log import logger
 from database import db
-from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema
+from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema, CategorySchema
 from database.models import Role, User, CategoryRequest, Category, ManagerCreationRequests
 from mail import send_mail
 from mail.templates import manager_approved, manager_rejected
@@ -173,7 +173,7 @@ def approve_manager(manager_request_id):
                 'Manager Request Approved',
                 'admin@grocerystore.com',
                 [manager_request.email],
-                html_body=manager_approved(manager_request.user_id, manager_request.username)
+                html_body=manager_approved(manager_request.id, manager_request.username)
             )
             return make_response(jsonify({'message': 'Manager request approved successfully'}), 200)
         else:
@@ -205,6 +205,25 @@ def reject_manager(manager_request_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/create_category', methods=['POST'])
+@jwt_required()
+def create_category():
+    category_schema = CategorySchema(many=False)
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to create categories'}), 403)
+        body = request.get_json()
+        category = category_schema.load(body)
+        db.session.add(category)
+        db.session.commit()
+        return make_response(jsonify({'message': 'Category created successfully'}), 201)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
 
 
 
