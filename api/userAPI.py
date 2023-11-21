@@ -54,3 +54,16 @@ def get_category(category_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+@user_blueprint.route('/get_categories', methods=['GET'])
+def get_categories():
+    category_schema = CategorySchema(many=True)
+    try:
+        categories = Category.query.all()
+        return make_response(jsonify({'message': 'Categories fetched successfully',
+                                      'categories': category_schema.dump(categories)}),
+                             200)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
