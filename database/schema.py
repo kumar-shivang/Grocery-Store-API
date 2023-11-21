@@ -269,7 +269,7 @@ class CategorySchema(Schema):
     def validate_category_name(self, category_name):
         if len(category_name) < 3:
             raise ValidationError("Category name must be at least 3 characters long")
-        elif not category_name.isalnum():
+        elif not all([char.isalnum() or char.isspace() for char in category_name]):
             raise ValidationError("Category name must only contain letters and numbers")
         elif Category.query.filter_by(category_name=category_name).first():
             raise ValidationError("Category with name {} already exists".format(category_name))
@@ -280,7 +280,7 @@ class CategorySchema(Schema):
             raise ValidationError("Category description must be at least 10 characters long")
 
     @post_load()
-    def make_category(self, data):
+    def make_category(self, data,**kwargs):
         try:
             category_name = data.get('category_name')
             category_name = clean(category_name)
@@ -291,6 +291,8 @@ class CategorySchema(Schema):
             return Category(**data)
         except TypeError as e:
             raise ValidationError(str(e))
+        finally:
+            del kwargs
 
 
 class OrderSchema(Schema):
