@@ -56,6 +56,7 @@ def request_category():
         current_user = User.query.get(get_jwt_identity())
         if current_user.role.role_name == 'manager':
             body = request.get_json()
+            body["user_id"] = current_user.id
             category_request = category_request_schema.load(body)
             db.session.add(category_request)
             db.session.commit()
