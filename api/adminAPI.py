@@ -31,7 +31,7 @@ def create_admin():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@admin_blueprint.route('/approve_request/<int:category_request_id>', methods=['PUT'])
+@admin_blueprint.route('/approve_category/<int:category_request_id>', methods=['PUT'])
 @jwt_required()
 def approve_category(category_request_id):
     try:
