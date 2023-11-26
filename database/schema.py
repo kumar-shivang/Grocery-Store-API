@@ -1,13 +1,14 @@
+from datetime import datetime
+from uuid import uuid1
+
 import PIL
 import bleach
-from datetime import datetime
+from PIL import Image
 from marshmallow import Schema, fields, ValidationError, validates, post_load
-from .models import (User, Role, Product, Category, Order, CategoryRequest,
-                     ManagerCreationRequests, ProductImage)
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
-from uuid import uuid1
-from PIL import Image
+from .models import (User, Role, Product, Category, Order, CategoryRequest,
+                     ManagerCreationRequests, ProductImage)
 
 
 def clean(string):
@@ -280,7 +281,7 @@ class CategorySchema(Schema):
             raise ValidationError("Category description must be at least 10 characters long")
 
     @post_load()
-    def make_category(self, data,**kwargs):
+    def make_category(self, data, **kwargs):
         try:
             category_name = data.get('category_name')
             category_name = clean(category_name)
@@ -480,7 +481,6 @@ class ManagerRequestSchema(Schema):
         elif ManagerCreationRequests.query.filter_by(username=username).first():
             raise ValidationError("Manager request with username {} already exists,"
                                   "wait for admin approval".format(username))
-
 
     @validates('email')
     def validate_email(self, email):

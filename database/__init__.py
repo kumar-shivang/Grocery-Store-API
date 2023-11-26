@@ -48,4 +48,3 @@ def init_database(app):
             db.session.add(default_image)
             db.session.commit()
             print(f"Default image created with id {default_image.id}.")
-

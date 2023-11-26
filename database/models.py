@@ -1,7 +1,8 @@
-from . import db
-from sqlalchemy.exc import NoResultFound
 from datetime import datetime, timedelta
+
+from sqlalchemy.exc import NoResultFound
 from werkzeug.security import generate_password_hash, check_password_hash
+from . import db
 
 
 class User(db.Model):
@@ -181,7 +182,7 @@ class Category(db.Model):
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     products = db.relationship('Product', backref='category', lazy='dynamic')
 
-    def __init__(self, category_name, category_description,added_by=None):
+    def __init__(self, category_name, category_description, added_by=None):
         self.category_name = category_name
         self.category_description = category_description
         self.added_by = added_by
@@ -291,7 +292,7 @@ class CategoryRequest(db.Model):
         if self.approved:
             raise ValueError("Request already approved")
         elif self.request_type == "add":
-            category = Category(self.category_name, self.category_description,self.user_id)
+            category = Category(self.category_name, self.category_description, self.user_id)
             db.session.add(category)
             db.session.commit()
         elif self.request_type == "edit":
@@ -356,7 +357,6 @@ class ManagerCreationRequests(db.Model):
         return None
 
 
-
 class ProductImage(db.Model):
     """
     :class:`ProductImage` class represents a product image in the system.
@@ -383,4 +383,3 @@ class ProductImage(db.Model):
 
     def __repr__(self):
         return '<product_image {}>'.format(self.image_name)
-
