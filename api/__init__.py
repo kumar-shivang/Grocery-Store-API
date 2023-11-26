@@ -1,6 +1,7 @@
-from error_log import logger
 from flask import Blueprint
 from flask_jwt_extended import JWTManager
+
+from error_log import logger
 
 api = Blueprint('api', __name__)
 jwt = JWTManager()
