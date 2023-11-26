@@ -1,11 +1,12 @@
-from error_log import logger
-from database import db
-from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, ManagerRequestSchema
-from database.models import Product, User
-from mail import send_mail
-from mail.templates import manager_created
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from database import db
+from database.models import Product, User
+from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, ManagerRequestSchema
+from error_log import logger
+from mail import send_mail
+from mail.templates import manager_created
 
 manager_blueprint = Blueprint('manager', __name__)
 
