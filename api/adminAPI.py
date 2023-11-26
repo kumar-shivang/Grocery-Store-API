@@ -1,11 +1,12 @@
-from error_log import logger
-from database import db
-from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema, CategorySchema
-from database.models import Role, User, CategoryRequest, Category, ManagerCreationRequests
-from mail import send_mail
-from mail.templates import manager_approved, manager_rejected
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from database import db
+from database.models import Role, User, CategoryRequest, Category, ManagerCreationRequests
+from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSchema, CategorySchema
+from error_log import logger
+from mail import send_mail
+from mail.templates import manager_approved, manager_rejected
 
 admin_blueprint = Blueprint('admin', __name__)
 
@@ -151,7 +152,7 @@ def get_manager_requests():
         if manager_requests:
             return make_response(jsonify({'message': 'Manager requests fetched successfully',
                                           'manager_requests': manager_request_schema.dump(manager_requests,
-                                                                                          many=True)}),200)
+                                                                                          many=True)}), 200)
         else:
             return make_response(jsonify({'message': 'Manager request list is empty'}), 404)
     except Exception as e:
@@ -223,9 +224,3 @@ def create_category():
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
-
-
-
-

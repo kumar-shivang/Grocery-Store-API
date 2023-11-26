@@ -1,9 +1,9 @@
-from . import validate_user_credentials
-from error_log import logger
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import create_access_token
-from database.models import User, ManagerCreationRequests
 
+from database.models import User, ManagerCreationRequests
+from error_log import logger
+from . import validate_user_credentials
 
 login_blueprint = Blueprint('login', __name__)
 

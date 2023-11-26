@@ -1,11 +1,12 @@
-from .managerAPI import manager_blueprint
-from .userAPI import user_blueprint
-from error_log import logger
-from database import db
-from database.schema import ProductSchema
-from database.models import Product
 from flask import jsonify, request, make_response
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from database import db
+from database.models import Product
+from database.schema import ProductSchema
+from error_log import logger
+from .managerAPI import manager_blueprint
+from .userAPI import user_blueprint
 
 
 @user_blueprint.route('/get_products', methods=['GET'])

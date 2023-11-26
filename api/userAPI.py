@@ -1,9 +1,10 @@
-from error_log import logger
-from database import db
-from database.schema import UserSchema, OrderSchema, CategorySchema
-from database.models import User, Order, Category, Role
 from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
+
+from database import db
+from database.models import User, Order, Category, Role
+from database.schema import UserSchema, OrderSchema, CategorySchema
+from error_log import logger
 
 user_blueprint = Blueprint('user', __name__)
 
