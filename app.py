@@ -1,9 +1,9 @@
-from flask import Flask, jsonify, request
 from api import init_api
-from database import init_database
 from config import Config
-from mail import init_mail
+from database import init_database
+from flask import Flask, jsonify
 from flask_cors import CORS, cross_origin
+from mail import init_mail
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
