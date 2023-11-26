@@ -279,6 +279,8 @@ class CategorySchema(Schema):
     def validate_category_description(self, category_description):
         if len(category_description) < 10:
             raise ValidationError("Category description must be at least 10 characters long")
+        if len(category_description) > 140:
+            raise ValidationError("Category description must be less than 140 characters long")
 
     @post_load()
     def make_category(self, data, **kwargs):
@@ -384,7 +386,7 @@ class CategoryRequestSchema(Schema):
     class Meta:
         model = CategoryRequest
         fields = ('id', 'category_id', 'category_name', 'category_description',
-                  'added_on', 'approved_at', 'approved', 'request_type')
+                  'added_on', 'approved_at', 'approved', 'request_type', 'user_id')
 
     id = fields.Int(dump_only=True)
     category_id = fields.Int(required=False, default=None)
@@ -392,6 +394,7 @@ class CategoryRequestSchema(Schema):
     category_description = fields.Str(required=False, default=None)
     request_type = fields.Str(required=True)
     added_on = fields.DateTime(dump_only=True)
+    user_id = fields.Int(required=True)
     approved_at = fields.DateTime(dump_only=True)
     approved = fields.Boolean(dump_only=True)
 
@@ -399,7 +402,7 @@ class CategoryRequestSchema(Schema):
     def validate_category_name(self, category_name):
         if len(category_name) < 3:
             raise ValidationError("Category name must be at least 3 characters long")
-        elif not category_name.isalnum():
+        elif not all([char.isalnum() or char.isspace() for char in category_name]):
             raise ValidationError("Category name must only contain letters and numbers")
         elif Category.query.filter_by(category_name=category_name).first():
             raise ValidationError("Category with name {} already exists".format(category_name))
@@ -408,6 +411,8 @@ class CategoryRequestSchema(Schema):
     def validate_category_description(self, category_description):
         if len(category_description) < 10:
             raise ValidationError("Category description must be at least 10 characters long")
+        if len(category_description) > 140:
+            raise ValidationError("Category description must be less than 140 characters long")
 
     @validates('request_type')
     def validate_request_type(self, request_type):
@@ -420,7 +425,7 @@ class CategoryRequestSchema(Schema):
             raise ValidationError("Category with id {} does not exist".format(category_id))
 
     @post_load()
-    def make_category_request(self, data):
+    def make_category_request(self, data,**kwargs):
         try:
             category_name = data.get('category_name')
             category_name = clean(category_name)
@@ -428,10 +433,14 @@ class CategoryRequestSchema(Schema):
             category_description = data.get('category_description')
             category_description = clean(category_description)
             data['category_description'] = category_description
-            data['added_on'] = datetime.utcnow()
+            # data['added_on'] = datetime.now()
             return CategoryRequest(**data)
         except TypeError as e:
             raise ValidationError(str(e))
+        except Exception as e:
+            raise ValidationError(str(e))
+        finally:
+            del kwargs
 
 
 class ManagerRequestSchema(Schema):
