@@ -275,15 +275,16 @@ class CategoryRequest(db.Model):
     category_name = db.Column(db.String(100), nullable=True)
     category_description = db.Column(db.String(100), nullable=True)
     request_type = db.Column(db.String(100), db.CheckConstraint('request_type in ("add", "update", "remove")'))
-    added_on = db.Column(db.DateTime, default=datetime.utcnow)
-    approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.utcnow)
+    added_on = db.Column(db.DateTime, default=datetime.now())
+    approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     approved = db.Column(db.Boolean, default=False)
 
-    def __init__(self, category_name, category_description, user_id):
+    def __init__(self, category_name, category_description, user_id,request_type="add"):
         self.category_name = category_name
         self.category_description = category_description
         self.user_id = user_id
+        self.request_type = request_type
 
     def __repr__(self):
         return '<category_request {}>'.format(self.category_name)
@@ -293,8 +294,11 @@ class CategoryRequest(db.Model):
             raise ValueError("Request already approved")
         elif self.request_type == "add":
             category = Category(self.category_name, self.category_description, self.user_id)
+            self.approved = True
+            self.approved_at = datetime.now()
             db.session.add(category)
             db.session.commit()
+            return category
         elif self.request_type == "edit":
             category = Category.query.get(self.category_id)
             if category:
@@ -303,6 +307,7 @@ class CategoryRequest(db.Model):
                 category.update()
                 db.session.add(category)
                 db.session.commit()
+                return category
             else:
                 raise NoResultFound("Category does not exist")
         elif self.request_type == "remove":
