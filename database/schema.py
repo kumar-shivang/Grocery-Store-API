@@ -262,12 +262,13 @@ class CategorySchema(Schema):
         fields = ('id', 'category_name', 'category_description', 'products')
 
     id = fields.Int(dump_only=True)
-    category_name = fields.Str()
-    category_description = fields.Str()
-    products = fields.Nested('ProductSchema', exclude=('category',))
+    category_name = fields.Str(required=True)
+    category_description = fields.Str(required=True)
+    products = fields.Nested('ProductSchema', exclude=('category',),dump_only=True)
 
     @validates('category_name')
     def validate_category_name(self, category_name):
+        category_name = clean(category_name)
         if len(category_name) < 3:
             raise ValidationError("Category name must be at least 3 characters long")
         elif not all([char.isalnum() or char.isspace() for char in category_name]):
