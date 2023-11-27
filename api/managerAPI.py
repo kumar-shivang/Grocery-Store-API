@@ -2,7 +2,7 @@ from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from database import db
-from database.models import Product, User
+from database.models import Product, User, Category, CategoryRequest
 from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, ManagerRequestSchema
 from error_log import logger
 from mail import send_mail
@@ -57,10 +57,15 @@ def request_category():
         if current_user.role.role_name == 'manager':
             body = request.get_json()
             body["user_id"] = current_user.id
-            category_request = category_request_schema.load(body)
-            db.session.add(category_request)
-            db.session.commit()
-            return make_response(jsonify({'message': 'Category requested successfully, wait for approval'}), 200)
+            if Category.query.filter_by(category_name=body["category_name"].lower()).first():
+                return make_response(jsonify({'message': 'Category already exists with the name ' + body["category_name"]}), 400)
+            elif CategoryRequest.query.filter_by(category_name=body["category_name"].lower()).first():
+                return make_response(jsonify({'message': 'Category already requested with the name ' + body["category_name"]}), 400)
+            else:
+                category_request = category_request_schema.load(body)
+                db.session.add(category_request)
+                db.session.commit()
+                return make_response(jsonify({'message': 'Category requested successfully, wait for approval'}), 200)
         else:
             return make_response(jsonify({'message': 'Only managers can request new categories'}), 403)
     except Exception as e:
