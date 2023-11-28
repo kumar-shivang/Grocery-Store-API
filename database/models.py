@@ -272,9 +272,10 @@ class CategoryRequest(db.Model):
     __tablename__ = 'category_request'
     id = db.Column(db.Integer, primary_key=True)
     category_id = db.Column(db.Integer, nullable=True)
-    category_name = db.Column(db.String(100), nullable=True)
+    category_name = db.Column(db.String(100),unique=True, nullable=False)
     category_description = db.Column(db.String(100), nullable=True)
-    request_type = db.Column(db.String(100), db.CheckConstraint('request_type in ("add", "update", "remove")'))
+    request_type = db.Column(db.String(100),
+                             db.CheckConstraint('request_type in ("add", "update", "remove")'))
     added_on = db.Column(db.DateTime, default=datetime.now())
     approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -381,7 +382,7 @@ class ProductImage(db.Model):
 
     __tablename__ = 'product_image'
     id = db.Column(db.Integer, primary_key=True)
-    image_name = db.Column(db.String(100))
+    image_name = db.Column(db.String(256))
 
     def __init__(self, image_name):
         self.image_name = image_name
