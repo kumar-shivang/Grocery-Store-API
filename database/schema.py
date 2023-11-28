@@ -264,7 +264,7 @@ class CategorySchema(Schema):
     id = fields.Int(dump_only=True)
     category_name = fields.Str(required=True)
     category_description = fields.Str(required=True)
-    products = fields.Nested('ProductSchema', exclude=('category',),dump_only=True)
+    products = fields.Nested('ProductSchema', exclude=('category',), dump_only=True)
 
     @validates('category_name')
     def validate_category_name(self, category_name):
@@ -426,7 +426,7 @@ class CategoryRequestSchema(Schema):
             raise ValidationError("Category with id {} does not exist".format(category_id))
 
     @post_load()
-    def make_category_request(self, data,**kwargs):
+    def make_category_request(self, data, **kwargs):
         try:
             category_name = data.get('category_name')
             category_name = clean(category_name)
@@ -536,12 +536,12 @@ class ProductImageSchema(Schema):
 
     class Meta:
         model = ProductImage
-        fields = ('id', 'image_name')
+        fields = ('id', 'image_name', 'image_path', 'image_file')
 
     id = fields.Int(dump_only=True)
     image_name = fields.Str(dump_only=True)
     image_path = fields.Method('get_image_path', dump_only=True)
-    image_file = fields.Raw(load_only=True, type='file')
+    image_file = fields.Raw(load_only=True, type='file', required=True)
 
     @validates('image_file')
     def validate_image_file(self, image_file: FileStorage) -> None:
@@ -554,16 +554,12 @@ class ProductImageSchema(Schema):
         so we can use all the attributes and methods of the FileStorage class.
 
         """
-        accepted_formats = ['jpg', 'jpeg', 'png', 'webp']
-        accepted_content_types = ['image/jpeg', 'image/png', 'image/webp']
         if not image_file:
             raise ValidationError("Image file is required")
         elif image_file.filename == '':
             raise ValidationError("Image file is required")
-        elif image_file.content_type not in accepted_content_types:
-            raise ValidationError("Image file must be one of {}".format(accepted_formats))
-        elif image_file.filename.split('.')[-1] not in accepted_formats:
-            raise ValidationError("Image file must be one of {}".format(accepted_formats))
+        elif not image_file.content_type.startswith('image'):
+            raise ValidationError("Uploaded file must be an image")
         elif image_file.content_length > 2 * 1024 * 1024:
             raise ValidationError("Image file must be less than 2MB")
 
@@ -572,15 +568,21 @@ class ProductImageSchema(Schema):
         return 'static/images/{}'.format(obj.image_name)
 
     @post_load()
-    def make_product_image(self, data):
+    def make_product_image(self, data,**kwargs):
         try:
+            print("trying to load image")
+            print(data)
             image_file = data.get('image_file')
+            print(image_file)
             # uuid1().hex is a unique string which is usually safe, but we use secure_filename() to be extra safe
-            image_name = secure_filename(uuid1().hex) + 'png'
+            image_name = secure_filename(uuid1().hex) + '.png'
+            print(image_name)
             image = Image.open(image_file.stream)
+            print(image)
             image.convert('RGB')
             image.thumbnail((300, 300))
             image.save('static/images/{}'.format(image_name))
+            print("image_saved")
             data['image_name'] = image_name
             data.pop('image_file')
             return ProductImage(**data)
