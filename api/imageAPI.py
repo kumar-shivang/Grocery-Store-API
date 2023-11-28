@@ -17,16 +17,18 @@ def upload_image():
     image_schema = ProductImageSchema(many=False)
     try:
         current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name != 'admin':
+        if current_user.role.role_name not in ['admin', 'manager']:
             return make_response(jsonify({'message': 'You are not authorized to upload images'}), 403)
         files = request.files
         if 'image' not in files:
             return make_response(jsonify({'message': 'Image not found in request'}), 400)
         image_file = files['image']
+        print(image_file)
         image = image_schema.load({'image_file': image_file})
         db.session.add(image)
         db.session.commit()
-        return make_response(jsonify({'message': 'Image uploaded successfully'}), 201)
+        return make_response(jsonify({'message': 'Image uploaded successfully',
+                                      'image':{'id':image.id ,'url':"http://localhost:5000/static/images"+image.image_name}}), 201)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
@@ -37,7 +39,7 @@ def upload_image():
 def delete_image(image_id):
     try:
         current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name != 'admin':
+        if current_user.role.role_name not in ['admin', 'manager']:
             return make_response(jsonify({'message': 'You are not authorized to delete images'}), 403)
         image = ProductImage.query.get(image_id)
         if image:
