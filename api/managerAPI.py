@@ -89,3 +89,37 @@ def get_manager():
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+@manager_blueprint.route('/request/delete_category/<int:id>',methods=['POST'])
+def request_delete_category(id):
+    category_request_schema = CategoryRequestSchema(many=False)
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        category = Category.query.get(id)
+        uncategorized = Category.query.filter_by(category_name='uncategorized').first()
+        if current_user.role.role_name == 'manager':
+            if not category:
+                return make_response(jsonify({'message': 'Category not found'}), 404)
+            elif category.id == uncategorized.id:
+                return make_response(jsonify({'message': 'You cannot delete this category'}), 400)
+            elif category.id in [i.category_id for i in CategoryRequest.query.filter_by(request_type='delete').all()]:
+                return make_response(jsonify({'message': 'Category deletion request already exists'}), 400)
+            elif category.added_by != get_jwt_identity():
+                return make_response(jsonify({'message': 'You are not authorized to delete this category'}), 403)
+            else:
+                body = request.get_json()
+                body['user_id'] = current_user.id
+                body['category_name'] = category.category_name
+                body['request_type'] = 'delete'
+                category_request = category_request_schema.load(body)
+                db.session.add(category_request)
+                db.session.commit()
+                return make_response(jsonify(
+                    {'message': 'Category deletion request created successfully, wait for approval'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Only managers can request to delete a category.'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
