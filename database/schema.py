@@ -194,11 +194,12 @@ class ProductSchema(Schema):
 
     @validates('unit')
     def validate_unit(self, unit):
-        if unit not in ['kg', 'litre', 'piece']:
-            raise ValidationError("Product unit must be one of 'kg', 'litre', 'piece'")
+        if unit not in ['kg', 'litre', 'unit']:
+            raise ValidationError("Product unit must be one of 'kg', 'litre', 'unit'")
 
     @validates('name')
     def validate_name(self, name):
+        name = clean(name)
         if len(name) < 3:
             raise ValidationError("Product name must be at least 3 characters long")
         elif not name.isalnum():
@@ -208,6 +209,7 @@ class ProductSchema(Schema):
 
     @validates('description')
     def validate_description(self, description):
+        description = clean(description)
         if len(description) < 10:
             raise ValidationError("Product description must be at least 10 characters long")
 
@@ -259,7 +261,7 @@ class CategorySchema(Schema):
 
     class Meta:
         model = Category
-        fields = ('id', 'category_name', 'category_description', 'products')
+        fields = ('id', 'category_name', 'category_description', 'products','added_on', 'last_updated')
 
     id = fields.Int(dump_only=True)
     category_name = fields.Str(required=True)
@@ -429,12 +431,11 @@ class CategoryRequestSchema(Schema):
     def make_category_request(self, data, **kwargs):
         try:
             category_name = data.get('category_name')
-            category_name = clean(category_name)
-            data['category_name'] = category_name
+            if category_name:
+                data['category_name'] = clean(category_name)
             category_description = data.get('category_description')
-            category_description = clean(category_description)
-            data['category_description'] = category_description
-            # data['added_on'] = datetime.now()
+            if category_description:
+                data['category_description'] = clean(category_description)
             return CategoryRequest(**data)
         except TypeError as e:
             raise ValidationError(str(e))
@@ -536,12 +537,13 @@ class ProductImageSchema(Schema):
 
     class Meta:
         model = ProductImage
-        fields = ('id', 'image_name', 'image_path', 'image_file')
+        fields = ('id', 'image_name', 'image_path', 'image_file', 'products')
 
     id = fields.Int(dump_only=True)
     image_name = fields.Str(dump_only=True)
     image_path = fields.Method('get_image_path', dump_only=True)
     image_file = fields.Raw(load_only=True, type='file', required=True)
+    products = fields.Nested('ProductSchema', exclude=('image',))
 
     @validates('image_file')
     def validate_image_file(self, image_file: FileStorage) -> None:
