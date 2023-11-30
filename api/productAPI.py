@@ -2,7 +2,7 @@ from flask import jsonify, request, make_response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from database import db
-from database.models import Product
+from database.models import Product, User
 from database.schema import ProductSchema
 from error_log import logger
 from .managerAPI import manager_blueprint
@@ -31,15 +31,15 @@ def create_product():
     product_schema = ProductSchema(many=False)
     try:
         user_id = get_jwt_identity()
+        if User.query.get(user_id).role.role_name != 'manager':
+            return make_response(jsonify({'message': 'You are not authorized to create products'}), 403)
         body = request.get_json()
         body['added_by'] = user_id
-        print(body)
         product = product_schema.load(body)
         db.session.add(product)
         db.session.commit()
         return make_response(jsonify({'message': 'Product created successfully',
-                                      'product': product_schema.dump(product)}),
-                             200)
+                                      'product': product_schema.dump(product)}), 201)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
