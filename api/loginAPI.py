@@ -1,5 +1,5 @@
 from flask import jsonify, request, make_response, Blueprint
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from database.models import User, ManagerCreationRequests
 from error_log import logger
@@ -56,6 +56,21 @@ def manager_login():
             return make_response(jsonify({'message': 'Only managers can login here.'}), 403)
         access_token = create_access_token(identity=user.id)
         return jsonify(access_token=access_token)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@login_blueprint.route('/check_token', methods=['GET'])
+@jwt_required()
+def check_token():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            return make_response(jsonify({'message': 'Token is valid','type':user.role.role_name}), 200)
+        else:
+            return make_response(jsonify({'message': 'Token is invalid'}), 400)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
