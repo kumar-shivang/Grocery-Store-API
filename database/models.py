@@ -108,17 +108,17 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True)
     rate = db.Column(db.Float)
-    unit = db.Column(db.String(100))
+    unit = db.Column(db.String(10))
     description = db.Column(db.String(100))
     current_stock = db.Column(db.Integer, db.CheckConstraint('current_stock >= 0'))
     expiry_date = db.Column(db.Date())
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
-    image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'))
+    image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'),default=1)
     image = db.relationship('ProductImage', backref='products')
 
     def __init__(self, name, rate, unit, description, added_by, category_id,
-                 expiry_date=None, current_stock=0):
+                 expiry_date=None, current_stock=0,image_id=1):
         self.name = name
         self.rate = rate
         self.unit = unit
@@ -127,9 +127,10 @@ class Product(db.Model):
         self.added_by = added_by
         self.category_id = category_id
         if expiry_date is None:
-            self.expiry_date = datetime.utcnow() + timedelta(days=365)
+            self.expiry_date = datetime.now() + timedelta(days=365)
         else:
             self.expiry_date = expiry_date
+        self.image_id = image_id
 
     def __repr__(self):
         return '<product {}>'.format(self.product_name)
@@ -274,8 +275,8 @@ class CategoryRequest(db.Model):
     category_id = db.Column(db.Integer, nullable=True)
     category_name = db.Column(db.String(100),unique=True, nullable=False)
     category_description = db.Column(db.String(100), nullable=True)
-    request_type = db.Column(db.String(100),
-                             db.CheckConstraint('request_type in ("add", "update", "remove")'))
+    request_type = db.Column(db.String(10),
+                             db.CheckConstraint('request_type in ("add", "update", "delete")'))
     added_on = db.Column(db.DateTime, default=datetime.now())
     approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.now())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -311,11 +312,9 @@ class CategoryRequest(db.Model):
                 return category
             else:
                 raise NoResultFound("Category does not exist")
-        elif self.request_type == "remove":
+        elif self.request_type == "delete":
             category = Category.query.get(self.category_id)
             if category:
-                if category.added_by != self.user_id:
-                    raise ValueError("You are not authorized to request deletion of this category")
                 db.session.delete(category)
                 db.session.commit()
             else:
