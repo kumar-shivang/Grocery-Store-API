@@ -57,6 +57,7 @@ def request_category():
         if current_user.role.role_name == 'manager':
             body = request.get_json()
             body["user_id"] = current_user.id
+            body["request_type"] = 'create'
             if Category.query.filter_by(category_name=body["category_name"].lower()).first():
                 return make_response(jsonify({'message': 'Category already exists with the name ' + body["category_name"]}), 400)
             elif CategoryRequest.query.filter_by(category_name=body["category_name"].lower()).first():
@@ -91,13 +92,14 @@ def get_manager():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@manager_blueprint.route('/request/delete_category/<int:id>',methods=['POST'])
-def request_delete_category(id):
+@manager_blueprint.route('/delete_category/<int:cat_id>',methods=['POST'])
+@jwt_required()
+def request_delete_category(cat_id):
     category_request_schema = CategoryRequestSchema(many=False)
     try:
         current_user = User.query.get(get_jwt_identity())
-        category = Category.query.get(id)
-        uncategorized = Category.query.filter_by(category_name='uncategorized').first()
+        category = Category.query.get(cat_id)
+        uncategorized = Category.query.filter_by(category_name='Uncategorized').first()
         if current_user.role.role_name == 'manager':
             if not category:
                 return make_response(jsonify({'message': 'Category not found'}), 404)
@@ -105,13 +107,13 @@ def request_delete_category(id):
                 return make_response(jsonify({'message': 'You cannot delete this category'}), 400)
             elif category.id in [i.category_id for i in CategoryRequest.query.filter_by(request_type='delete').all()]:
                 return make_response(jsonify({'message': 'Category deletion request already exists'}), 400)
-            elif category.added_by != get_jwt_identity():
-                return make_response(jsonify({'message': 'You are not authorized to delete this category'}), 403)
             else:
-                body = request.get_json()
+                body = dict()
                 body['user_id'] = current_user.id
-                body['category_name'] = category.category_name
                 body['request_type'] = 'delete'
+                body['category_id'] = category.id
+                body['category_name'] = category.category_name
+                body['category_description'] = category.category_description
                 category_request = category_request_schema.load(body)
                 db.session.add(category_request)
                 db.session.commit()
@@ -119,6 +121,37 @@ def request_delete_category(id):
                     {'message': 'Category deletion request created successfully, wait for approval'}), 200)
         else:
             return make_response(jsonify({'message': 'Only managers can request to delete a category.'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@manager_blueprint.route('/update_category/<int:cat_id>',methods=['POST'])
+@jwt_required()
+def update_category(cat_id):
+    category_request_schema = CategoryRequestSchema(many=False)
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        category = Category.query.get(cat_id)
+        uncategorized = Category.query.filter_by(category_name='Uncategorized').first()
+        if current_user.role.role_name == 'manager':
+            if not category:
+                return make_response(jsonify({'message': 'Category not found'}), 404)
+            elif category.id == uncategorized.id:
+                return make_response(jsonify({'message': 'You cannot update this category'}), 400)
+            elif category.id in [i.category_id for i in CategoryRequest.query.filter_by(request_type='update').all()]:
+                return make_response(jsonify({'message': 'Category update request already exists'}), 400)
+            else:
+                body = request.get_json()
+                body['user_id'] = current_user.id
+                body['request_type'] = 'update'
+                category_request = category_request_schema.load(body)
+                db.session.add(category_request)
+                db.session.commit()
+                return make_response(jsonify(
+                    {'message': 'Category update request created successfully, wait for approval'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Only managers can request to update a category.'}), 403)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
