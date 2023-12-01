@@ -114,11 +114,11 @@ class Product(db.Model):
     expiry_date = db.Column(db.Date())
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'))
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
-    image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'),default=1)
+    image_id = db.Column(db.Integer, db.ForeignKey('product_image.id'), default=1)
     image = db.relationship('ProductImage', backref='products')
 
     def __init__(self, name, rate, unit, description, added_by, category_id,
-                 expiry_date=None, current_stock=0,image_id=1):
+                 expiry_date=None, current_stock=0, image_id=1):
         self.name = name
         self.rate = rate
         self.unit = unit
@@ -273,7 +273,7 @@ class CategoryRequest(db.Model):
     __tablename__ = 'category_request'
     id = db.Column(db.Integer, primary_key=True)
     category_id = db.Column(db.Integer, nullable=True)
-    category_name = db.Column(db.String(100),nullable=True)
+    category_name = db.Column(db.String(100), nullable=True)
     category_description = db.Column(db.String(100), nullable=True)
     request_type = db.Column(db.String(10),
                              db.CheckConstraint('request_type in ("add", "update", "delete")'))
@@ -282,12 +282,14 @@ class CategoryRequest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     approved = db.Column(db.Boolean, default=False)
 
-    def __init__(self, category_name, category_description, user_id,request_type="add",category_id=None):
-        if CategoryRequest.query.filter_by(category_name=category_name).first() and request_type in ["add","update"]:
+    def __init__(self, category_name, category_description, user_id, request_type="add", category_id=None):
+        if CategoryRequest.query.filter_by(category_name=category_name).filter_by(
+                approved=False).first() and request_type in ["add", "update"]:
             raise ValueError("Request already exists for this category")
-        elif Category.query.filter_by(category_name=category_name).first() and request_type in ["add","update"]:
+        elif Category.query.filter_by(category_name=category_name).first() and request_type in ["add", "update"]:
             raise ValueError("Category already exists")
-        elif request_type== "delete" and CategoryRequest.query.filter_by(category_name=category_name).first():
+        elif (request_type == "delete" and
+              CategoryRequest.query.filter_by(category_name=category_name).filter_by(approved=False).first()):
             raise ValueError("Request already exists for this category")
         else:
             self.category_name = category_name
