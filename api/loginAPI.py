@@ -61,14 +61,14 @@ def manager_login():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@login_blueprint.route('/check_token', methods=['GET'])
+@login_blueprint.route('/check_token/<string:user_type>', methods=['GET'])
 @jwt_required()
-def check_token():
+def check_token(user_type):
     try:
         user_id = get_jwt_identity()
         user = User.query.filter_by(id=user_id).first()
-        if user:
-            return make_response(jsonify({'message': 'Token is valid','type':user.role.role_name}), 200)
+        if user and user.role.role_name == user_type:
+            return make_response(jsonify({'message': 'Token is valid'}), 200)
         else:
             return make_response(jsonify({'message': 'Token is invalid'}), 400)
     except Exception as e:
