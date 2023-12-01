@@ -306,19 +306,19 @@ class CategoryRequest(db.Model):
             category = Category(self.category_name, self.category_description, self.user_id)
             self.approved = True
             self.approved_at = datetime.now()
-            db.session.add(category)
-            db.session.commit()
             self.category_id = category.id
-            db.session.add(self)
+            db.session.add_all([category, self])
             db.session.commit()
             return category
-        elif self.request_type == "edit":
+        elif self.request_type == "update":
             category = Category.query.get(self.category_id)
             if category:
                 category.category_name = self.category_name
                 category.category_description = self.category_description
                 category.update()
-                db.session.add(category)
+                self.approved = True
+                self.approved_at = datetime.now()
+                db.session.add_all([category, self])
                 db.session.commit()
                 return category
             else:
@@ -326,6 +326,9 @@ class CategoryRequest(db.Model):
         elif self.request_type == "delete":
             category = Category.query.get(self.category_id)
             if category:
+                self.approved = True
+                self.approved_at = datetime.now()
+                db.session.add(self)
                 db.session.delete(category)
                 db.session.commit()
             else:
