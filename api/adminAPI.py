@@ -169,7 +169,7 @@ def update_category(category_id):
         body = request.get_json()
         if category:
             duplicate_category = Category.query.filter_by(category_name=body['category_name']).first()
-            if duplicate_category.id != category_id:
+            if duplicate_category and duplicate_category.id != category_id:
                 return make_response(jsonify({'message': 'Category already exists with the name ' + duplicate_category.category_name}), 400)
             if category_id == 1:
                 return make_response(jsonify({'message': 'You cannot update this category'}), 400)
