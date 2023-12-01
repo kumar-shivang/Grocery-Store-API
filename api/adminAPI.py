@@ -50,18 +50,59 @@ def approve_category(category_request_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@admin_blueprint.route('/reject_category/<int:category_request_id>', methods=['PUT'])
+@admin_blueprint.route('/reject_request/<int:request_id>', methods=['PUT'])
 @jwt_required()
-def reject_category(category_request_id):
+def reject_request(request_id):
     try:
         current_user = User.query.get(get_jwt_identity())
         if current_user.role.role_name != 'admin':
             return make_response(jsonify({'message': 'You are not authorized to reject categories'}), 403)
-        category_request = CategoryRequest.query.get(category_request_id)
+        category_request = CategoryRequest.query.get(request_id)
         if category_request:
             category_request.reject()
             db.session.commit()
             return make_response(jsonify({'message': 'Category request rejected successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Category request not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/approve_delete_category/<int:id>', methods=['POST'])
+@jwt_required()
+def approve_delete_category(id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        category_request = CategoryRequest.query.get(id)
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to approve categories'}), 403)
+        if category_request:
+            category = category_request.approve()
+            return make_response(jsonify({'message': 'Category deleted successfully'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Category request not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@admin_blueprint.route('/approve_update/<int:req_id>', methods=['POST'])
+@jwt_required()
+def approve_update(req_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        category_request = CategoryRequest.query.get(req_id)
+        if current_user.role.role_name != 'admin':
+            return make_response(jsonify({'message': 'You are not authorized to approve categories'}), 403)
+        if category_request:
+            if category_request.category_name == 'Uncategorized':
+                return make_response(jsonify({'message': 'Cannot update Uncategorized category'}), 400)
+            duplicate_category = Category.query.filter_by(category_name=category_request.category_name).first()
+            if duplicate_category and duplicate_category.id != category_request.category_id:
+                return make_response(jsonify({'message': 'Category already exists with the name ' + duplicate_category.category_name}), 400)
+            category = category_request.approve()
+            return make_response(jsonify({'message': 'Category updated successfully'}), 200)
         else:
             return make_response(jsonify({'message': 'Category request not found'}), 404)
     except Exception as e:
@@ -90,7 +131,7 @@ def get_category_requests():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@admin_blueprint.route('/<int:category_id>', methods=['DELETE'])
+@admin_blueprint.route('/category/<int:category_id>', methods=['DELETE'])
 @jwt_required()
 def delete_category(category_id):
     try:
@@ -125,11 +166,23 @@ def update_category(category_id):
         if current_user.role.role_name != 'admin':
             return make_response(jsonify({'message': 'You are not authorized to update categories'}), 403)
         category = Category.query.get(category_id)
+        body = request.get_json()
         if category:
-            if 'category_name' in request.get_json():
-                category.category_name = request.get_json()['category_name']
-            if 'category_description' in request.get_json():
-                category.category_description = request.get_json()['category_description']
+            duplicate_category = Category.query.filter_by(category_name=body['category_name']).first()
+            if duplicate_category.id != category_id:
+                return make_response(jsonify({'message': 'Category already exists with the name ' + duplicate_category.category_name}), 400)
+            if category_id == 1:
+                return make_response(jsonify({'message': 'You cannot update this category'}), 400)
+            if 'category_name' in body:
+                print('updating category name')
+                print('old name', category.category_name)
+                print('new name', body['category_name'])
+                category.category_name = body['category_name']
+            if 'category_description' in body:
+                print('updating category description')
+                print('old description', category.category_description)
+                print('new description', body['category_description'])
+                category.category_description = body['category_description']
             db.session.add(category)
             db.session.commit()
             return make_response(jsonify({'message': 'Category updated successfully'}), 200)
@@ -224,3 +277,7 @@ def create_category():
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+
+
+
