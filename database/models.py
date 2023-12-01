@@ -273,7 +273,7 @@ class CategoryRequest(db.Model):
     __tablename__ = 'category_request'
     id = db.Column(db.Integer, primary_key=True)
     category_id = db.Column(db.Integer, nullable=True)
-    category_name = db.Column(db.String(100),unique=True, nullable=False)
+    category_name = db.Column(db.String(100),nullable=True)
     category_description = db.Column(db.String(100), nullable=True)
     request_type = db.Column(db.String(10),
                              db.CheckConstraint('request_type in ("add", "update", "delete")'))
@@ -282,11 +282,19 @@ class CategoryRequest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     approved = db.Column(db.Boolean, default=False)
 
-    def __init__(self, category_name, category_description, user_id,request_type="add"):
-        self.category_name = category_name
-        self.category_description = category_description
-        self.user_id = user_id
-        self.request_type = request_type
+    def __init__(self, category_name, category_description, user_id,request_type="add",category_id=None):
+        if CategoryRequest.query.filter_by(category_name=category_name).first() and request_type in ["add","update"]:
+            raise ValueError("Request already exists for this category")
+        elif Category.query.filter_by(category_name=category_name).first() and request_type in ["add","update"]:
+            raise ValueError("Category already exists")
+        elif request_type== "delete" and CategoryRequest.query.filter_by(category_name=category_name).first():
+            raise ValueError("Request already exists for this category")
+        else:
+            self.category_name = category_name
+            self.category_description = category_description
+            self.user_id = user_id
+            self.request_type = request_type
+            self.category_id = category_id
 
     def __repr__(self):
         return '<category_request {}>'.format(self.category_name)
@@ -299,6 +307,9 @@ class CategoryRequest(db.Model):
             self.approved = True
             self.approved_at = datetime.now()
             db.session.add(category)
+            db.session.commit()
+            self.category_id = category.id
+            db.session.add(self)
             db.session.commit()
             return category
         elif self.request_type == "edit":
