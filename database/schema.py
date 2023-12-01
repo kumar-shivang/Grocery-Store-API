@@ -407,8 +407,6 @@ class CategoryRequestSchema(Schema):
             raise ValidationError("Category name must be at least 3 characters long")
         elif not all([char.isalnum() or char.isspace() for char in category_name]):
             raise ValidationError("Category name must only contain letters and numbers")
-        elif Category.query.filter_by(category_name=category_name).first():
-            raise ValidationError("Category with name {} already exists".format(category_name))
 
     @validates('category_description')
     def validate_category_description(self, category_description):
@@ -430,12 +428,8 @@ class CategoryRequestSchema(Schema):
     @post_load()
     def make_category_request(self, data, **kwargs):
         try:
-            category_name = data.get('category_name')
-            if category_name:
-                data['category_name'] = clean(category_name)
-            category_description = data.get('category_description')
-            if category_description:
-                data['category_description'] = clean(category_description)
+            data['category_name'] = clean(data.get('category_name'))
+            data['category_description'] = clean(data.get('category_description'))
             return CategoryRequest(**data)
         except TypeError as e:
             raise ValidationError(str(e))
