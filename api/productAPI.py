@@ -45,9 +45,9 @@ def create_product():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@manager_blueprint.route('/add_stock/<int:product_id>', methods=['PUT'])
+@manager_blueprint.route('/update_stock/<int:product_id>', methods=['PUT'])
 @jwt_required()
-def add_stock(product_id):
+def update_stock(product_id):
     try:
         product = Product.query.filter_by(id=product_id).first()
         if product:

@@ -135,8 +135,8 @@ class Product(db.Model):
     def __repr__(self):
         return '<product {}>'.format(self.product_name)
 
-    def add_stock(self, quantity):
-        self.current_stock += quantity
+    def update_stock(self, quantity):
+        self.current_stock = quantity
         db.session.add(self)
         db.session.commit()
         return self
