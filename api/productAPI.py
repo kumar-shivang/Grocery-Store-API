@@ -56,7 +56,9 @@ def update_stock(product_id):
             body = request.get_json()
             quantity = body.get('quantity')
             if quantity:
-                product.add_stock(quantity)
+                if quantity < 0:
+                    return make_response(jsonify({'message': 'Quantity cannot be negative'}), 400)
+                product.update_stock(quantity)
                 return make_response(jsonify({'message': 'Stock added successfully',
                                               'product': ProductSchema().dump(product)}), 200)
             else:
@@ -68,9 +70,9 @@ def update_stock(product_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-@manager_blueprint.route('/update_price/<int:product_id>', methods=['PUT'])
+@manager_blueprint.route('/update_rate/<int:product_id>', methods=['PUT'])
 @jwt_required()
-def update_price(product_id):
+def update_rate(product_id):
     try:
         product = Product.query.filter_by(id=product_id).first()
         if product:
@@ -78,9 +80,11 @@ def update_price(product_id):
                 return make_response(jsonify({'message': 'You are not authorized to update price of this product'}),
                                      -403)
             body = request.get_json()
-            price = body.get('price')
-            if price:
-                product.update_price(price)
+            rate = body.get('rate')
+            if rate:
+                if rate <= 0:
+                    return make_response(jsonify({'message': 'Rate cannot be negative or zero'}), 400)
+                product.update_rate(rate)
                 return make_response(jsonify({'message': 'Price updated successfully',
                                               'product': ProductSchema().dump(product)}
                                              ), 200)
@@ -117,6 +121,27 @@ def update_expiry_date(product_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
+
+@manager_blueprint.route('/update_product/<int:product_id>', methods=['PUT'])
+@jwt_required()
+def update_product(product_id):
+    product_schema = ProductSchema(many=False)
+    try:
+        product = Product.query.filter_by(id=product_id).first()
+        if product:
+            if product.added_by != get_jwt_identity():
+                return make_response(jsonify({'message': 'You are not authorized to update this product'}), 403)
+            body = request.get_json()
+            product = product.update_product(body['name'],body['description'])
+            return make_response(jsonify({'message': 'Product updated successfully',
+                                          'product': product_schema.dump(product)}), 200)
+        else:
+            return make_response(jsonify({'message': 'Product not found'}), 404)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
 @manager_blueprint.route('/delete_product/<int:product_id>', methods=['DELETE'])
 @jwt_required()
 def delete_product(product_id):
@@ -133,3 +158,5 @@ def delete_product(product_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
+
+

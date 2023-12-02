@@ -135,14 +135,21 @@ class Product(db.Model):
     def __repr__(self):
         return '<product {}>'.format(self.product_name)
 
+    def update_product(self,name,description):
+        self.name = name
+        self.description = description
+        db.session.add(self)
+        db.session.commit()
+        return self
+
     def update_stock(self, quantity):
         self.current_stock = quantity
         db.session.add(self)
         db.session.commit()
         return self
 
-    def update_price(self, new_price):
-        self.rate = new_price
+    def update_rate(self, new_rate):
+        self.rate = new_rate
         db.session.add(self)
         db.session.commit()
         return self
