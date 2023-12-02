@@ -2,6 +2,7 @@ from flask import jsonify, request, make_response, Blueprint
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 
 from database.models import User, ManagerCreationRequests
+from database.schema import UserSchema
 from error_log import logger
 from . import validate_user_credentials
 
@@ -71,6 +72,19 @@ def check_token(user_type):
             return make_response(jsonify({'message': 'Token is valid'}), 200)
         else:
             return make_response(jsonify({'message': 'Token is invalid'}), 400)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+@login_blueprint.route('/get_user', methods=['GET'])
+@jwt_required()
+def get_user():
+    user_schema = UserSchema()
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.filter_by(id=user_id).first()
+        user = user_schema.dump(user)
+        return make_response(jsonify(user), 200)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
