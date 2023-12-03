@@ -202,7 +202,7 @@ class ProductSchema(Schema):
         name = clean(name)
         if len(name) < 3:
             raise ValidationError("Product name must be at least 3 characters long")
-        elif not name.isalnum():
+        elif not all([char.isalnum() or char.isspace() for char in name]):
             raise ValidationError("Product name must only contain letters and numbers")
         elif Product.query.filter_by(name=name).first():
             raise ValidationError("Product with name {} already exists".format(name))
