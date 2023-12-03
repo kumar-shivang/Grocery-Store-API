@@ -121,7 +121,6 @@ def update_expiry_date(product_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-
 @manager_blueprint.route('/update_product/<int:product_id>', methods=['PUT'])
 @jwt_required()
 def update_product(product_id):
