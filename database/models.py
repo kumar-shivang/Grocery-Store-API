@@ -133,7 +133,7 @@ class Product(db.Model):
         self.image_id = image_id
 
     def __repr__(self):
-        return '<product {}>'.format(self.product_name)
+        return '<product {}>'.format(self.name)
 
     def update_product(self,name,description):
         self.name = name
