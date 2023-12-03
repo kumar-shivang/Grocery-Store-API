@@ -57,7 +57,7 @@ def request_category():
         if current_user.role.role_name == 'manager':
             body = request.get_json()
             body["user_id"] = current_user.id
-            body["request_type"] = 'create'
+            body["request_type"] = 'add'
             if Category.query.filter_by(category_name=body["category_name"].lower()).first():
                 return make_response(jsonify({'message': 'Category already exists with the name ' + body["category_name"]}), 400)
             elif CategoryRequest.query.filter_by(category_name=body["category_name"].lower()).first():
