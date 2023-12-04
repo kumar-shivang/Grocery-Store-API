@@ -21,19 +21,15 @@ def place_order():
             product = Product.query.get(body['product_id'])
             if product:
                 if product.current_stock >= body['quantity']:
-                    product.current_stock -= body['quantity']
-                    db.session.add(product)
-                    db.session.commit()
+                    order = order_schema.load(body)
+                    return make_response(jsonify({'message': 'Order placed successfully',
+                                                  'order': order_schema.dump(order)}),
+                                         201)
                 else:
                     return make_response(jsonify({'message': 'Not enough stock available'}), 400)
             else:
                 return make_response(jsonify({'message': 'Product not found'}), 404)
-            order = order_schema.load(body)
-            db.session.add(order)
-            db.session.commit()
-            return make_response(jsonify({'message': 'Order placed successfully',
-                                          'order': order_schema.dump(order)}),
-                                 201)
+
         else:
             return make_response(jsonify({'message': 'You are not authorized to place orders'}), 403)
     except Exception as e:
@@ -94,15 +90,7 @@ def cancel_order(order_id):
                 if order.confirmed:
                     return make_response(jsonify({'message': 'Order already confirmed, cannot cancel'}), 400)
                 elif order.user_id == current_user.id:
-                    product = Product.query.get(order.product_id)
-                    if product:
-                        product.current_stock += order.quantity
-                        db.session.add(product)
-                        db.session.commit()
-                    else:
-                        return make_response(jsonify({'message': 'Product not found'}), 404)
-                    db.session.delete(order)
-                    db.session.commit()
+                    order.cancel()
                     return make_response(jsonify({'message': 'Order cancelled successfully'}), 200)
                 else:
                     return make_response(jsonify({'message': 'You are not authorized to cancel this order'}), 403)
@@ -110,6 +98,52 @@ def cancel_order(order_id):
                 return make_response(jsonify({'message': 'Order not found'}), 404)
         else:
             return make_response(jsonify({'message': 'You are not authorized to cancel orders'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@order_blueprint.route('/confirm_order/<int:order_id>', methods=['PUT'])
+@jwt_required()
+def confirm_order(order_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == "manager":
+            order = Order.query.get(order_id)
+            if order:
+                if order.confirmed:
+                    return make_response(jsonify({'message': 'Order already confirmed'}), 400)
+                else:
+                    order.confirm()
+                    return make_response(jsonify({'message': 'Order confirmed successfully'}), 200)
+            else:
+                return make_response(jsonify({'message': 'Order not found'}), 404)
+        else:
+            return make_response(jsonify({'message': 'You are not authorized to confirm orders'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@order_blueprint.route('/update_order/<int:order_id>', methods=['PUT'])
+@jwt_required()
+def update_order(order_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == "user":
+            order = Order.query.get(order_id)
+            if order:
+                if order.confirmed:
+                    return make_response(jsonify({'message': 'Order already confirmed'}), 400)
+                else:
+                    body = request.get_json()
+                    new_quantity = body['quantity']
+                    order.update(new_quantity)
+                    return make_response(jsonify({'message': 'Order updated successfully'}), 200)
+            else:
+                return make_response(jsonify({'message': 'Order not found'}), 404)
+        else:
+            return make_response(jsonify({'message': 'You are not authorized to update orders'}), 403)
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)

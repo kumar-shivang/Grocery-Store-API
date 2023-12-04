@@ -221,11 +221,14 @@ class Order(db.Model):
         - __init__(product_id, user_id, quantity): Initializes a new instance of the Order class.
         - __repr__(): Returns a string representation of the Order object.
         - confirm(): Confirms the order and returns the Order object.
+        - update(quantity): Updates the quantity of the order and returns the Order object.
+        - delete(): Deletes the order and returns None.
+        - get_all_orders(): Returns a list of all orders.
 
     """
     __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
-    order_time = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    order_time = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     confirmed = db.Column(db.Boolean, default=False)
@@ -235,10 +238,18 @@ class Order(db.Model):
     def __init__(self, product_id, user_id, quantity):
         try:
             product = Product.query.filter_by(id=product_id).first()
-            self.value = product.product_rate * quantity
-            self.product_id = product_id
-            self.user_id = user_id
-            self.quantity = quantity
+            user = User.query.filter_by(id=user_id).first()
+            if product.current_stock < quantity:
+                raise ValueError("Not enough stock available")
+            else:
+                product.current_stock -= quantity
+                db.session.add(product)
+                self.product_id = product_id
+                self.user_id = user_id
+                self.quantity = quantity
+                self.value = product.rate * quantity
+                db.session.add(self)
+                db.session.commit()
         except NoResultFound:
             raise NoResultFound("Product does not exist")
 
@@ -250,6 +261,33 @@ class Order(db.Model):
         db.session.add(self)
         db.session.commit()
         return self
+
+    def update(self,quantity):
+        product = Product.query.get(self.product_id)
+        if product.current_stock + self.quantity >= quantity:
+            product.current_stock += self.quantity - quantity
+            db.session.add(product)
+            self.quantity = quantity
+            self.value = product.product_rate * quantity
+            db.session.add(self)
+            db.session.commit()
+        else:
+            raise ValueError("Not enough stock available")
+
+    def delete(self):
+        product = Product.query.get(self.product_id)
+        product.current_stock += self.quantity
+        db.session.add(product)
+        db.session.delete(self)
+        db.session.commit()
+        return None
+
+    @staticmethod
+    def get_all_orders():
+        return Order.query.all()
+
+
+
 
 
 class CategoryRequest(db.Model):
