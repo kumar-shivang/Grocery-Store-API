@@ -157,5 +157,3 @@ def delete_product(product_id):
     except Exception as e:
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
-
-
