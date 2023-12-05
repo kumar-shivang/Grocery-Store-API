@@ -234,6 +234,7 @@ class Order(db.Model):
     confirmed = db.Column(db.Boolean, default=False)
     quantity = db.Column(db.Integer)
     value = db.Column(db.Float)
+    product = db.relationship('Product', backref='orders')
 
     def __init__(self, product_id, user_id, quantity):
         try:
