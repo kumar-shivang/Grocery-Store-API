@@ -13,7 +13,7 @@ from .userAPI import user_blueprint
 def get_products():
     product_schema = ProductSchema(many=True)
     try:
-        products = Product.query.all()
+        products = Product.query.filter(Product.current_stock > 0).all()
         if products:
             return make_response(jsonify({'message': 'Products fetched successfully',
                                           'products': product_schema.dump(products, many=True)}),
