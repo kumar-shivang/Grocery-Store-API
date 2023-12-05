@@ -166,7 +166,7 @@ class ProductSchema(Schema):
     expiry_date = fields.Date(format='%Y-%m-%d')
     added_by = fields.Int(load_only=True)  # added_by is the user id of the user who added the product
     category_id = fields.Int(load_only=True, required=False)
-    category = fields.Nested('CategorySchema', exclude=('products', 'added_on', 'last_updated'))
+    category = fields.Nested('CategorySchema', exclude=('products', 'added_on', 'last_updated','category_description'))
     image_id = fields.Int(load_only=True, required=False, default=1)
     image = fields.Nested('ProductImageSchema', exclude=('products',))
 
@@ -354,7 +354,7 @@ class OrderSchema(Schema):
             raise ValidationError("Quantity must be greater than zero")
 
     @post_load
-    def make_order(self, data):
+    def make_order(self, data, **kwargs):
         try:
             user_id = data.get('user_id')
             product_id = data.get('product_id')
@@ -364,6 +364,8 @@ class OrderSchema(Schema):
             raise ValidationError(str(e))
         except Exception as e:
             raise ValidationError(str(e))
+        finally:
+            del kwargs
 
 
 class CategoryRequestSchema(Schema):
