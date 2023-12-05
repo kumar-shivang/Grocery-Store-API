@@ -168,7 +168,6 @@ def confirm_all():
         return make_response(jsonify({'message': str(e)}), 400)
 
 
-
 @order_blueprint.route('/update_order/<int:order_id>', methods=['PUT'])
 @jwt_required()
 def update_order(order_id):
