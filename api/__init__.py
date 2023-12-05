@@ -13,11 +13,13 @@ def init_api(app):
     from .productAPI import manager_blueprint
     from .adminAPI import admin_blueprint
     from .imageAPI import image_blueprint
+    from .orderAPI import order_blueprint
     api.register_blueprint(login_blueprint, url_prefix='/login')
     api.register_blueprint(user_blueprint, url_prefix='/user')
     api.register_blueprint(manager_blueprint, url_prefix='/manager')
     api.register_blueprint(admin_blueprint, url_prefix='/admin')
     api.register_blueprint(image_blueprint, url_prefix='/image')
+    api.register_blueprint(order_blueprint, url_prefix='/order')
     app.register_blueprint(api, url_prefix='/api')
     jwt.init_app(app)
 
