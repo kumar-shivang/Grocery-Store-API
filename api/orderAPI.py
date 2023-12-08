@@ -5,6 +5,7 @@ from database import db
 from database.models import User, Order, Product
 from database.schema import OrderSchema
 from error_log import logger
+from cache import cache
 
 order_blueprint = Blueprint('order', __name__)
 
@@ -38,6 +39,7 @@ def place_order():
 
 
 @order_blueprint.route('/get_order/<int:order_id>', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_order(order_id):
     order_schema = OrderSchema(many=False)
@@ -59,6 +61,7 @@ def get_order(order_id):
 
 
 @order_blueprint.route('/unconfirmed', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_unconfirmed():
     order_schema = OrderSchema(many=True)
@@ -80,6 +83,7 @@ def get_unconfirmed():
 
 
 @order_blueprint.route('/confirmed', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_confirmed():
     order_schema = OrderSchema(many=True)
@@ -113,7 +117,7 @@ def cancel_order(order_id):
                 if order.confirmed:
                     return make_response(jsonify({'message': 'Order already confirmed, cannot cancel'}), 400)
                 elif order.user_id == current_user.id:
-                    order.cancel()
+                    order.delete()
                     return make_response(jsonify({'message': 'Order cancelled successfully'}), 200)
                 else:
                     return make_response(jsonify({'message': 'You are not authorized to cancel this order'}), 403)
