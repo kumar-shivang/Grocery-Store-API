@@ -7,28 +7,9 @@ from database.schema import UserSchema, CategoryRequestSchema, ManagerRequestSch
 from error_log import logger
 from mail import send_mail
 from mail.templates import manager_approved, manager_rejected
+from cache import cache
 
 admin_blueprint = Blueprint('admin', __name__)
-
-
-@admin_blueprint.route('/create_admin', methods=[
-    'POST'])  # Admin is already created in the database, but this is how you would create one
-def create_admin():
-    user_schema = UserSchema(many=False)
-    try:
-        body = request.get_json()
-        admin_role = Role.query.filter_by(role_name='admin').first()
-        if admin_role:
-            body['role_id'] = admin_role.id
-        else:
-            return make_response(jsonify({'message': 'Admin role not found'}), 404)
-        user = user_schema.load(body)
-        db.session.add(user)
-        db.session.commit()
-        return make_response(jsonify({'message': 'Admin created successfully. Please login to continue'}, 201))
-    except Exception as e:
-        logger.error(e)
-        return make_response(jsonify({'message': str(e)}), 400)
 
 
 @admin_blueprint.route('/approve_category/<int:category_request_id>', methods=['PUT'])
@@ -195,6 +176,7 @@ def update_category(category_id):
 
 @admin_blueprint.route('/get_manager_requests', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=60)
 def get_manager_requests():
     manager_request_schema = ManagerRequestSchema(many=True)
     try:
