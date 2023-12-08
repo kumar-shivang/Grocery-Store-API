@@ -199,7 +199,20 @@ class Category(db.Model):
         return '<category {}>'.format(self.category_name)
 
     def update(self):
-        self.last_updated = datetime.utcnow()
+        self.last_updated = datetime.now()
+        db.session.add(self)
+        db.session.commit()
+        return self
+
+    def delete(self):
+        products = Product.query.filter_by(category_id=self.id).all()
+        uncategorized = Category.query.filter_by(category_name='Uncategorized').first()
+        for product in products:
+            product.category_id = uncategorized.id
+            db.session.add(product)
+        db.session.delete(self)
+        db.session.commit()
+        return None
 
 
 class Order(db.Model):
