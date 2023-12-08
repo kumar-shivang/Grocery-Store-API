@@ -130,6 +130,26 @@ def cancel_order(order_id):
         return make_response(jsonify({'message': str(e)}), 400)
 
 
+@order_blueprint.route('/cancel_all', methods=['DELETE'])
+@jwt_required()
+def cancel_all():
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == "user":
+            orders = Order.query.filter_by(user_id=current_user.id).filter_by(confirmed=False).all()
+            if orders:
+                for order in orders:
+                    order.delete()
+                return make_response(jsonify({'message': 'Orders cancelled successfully'}), 200)
+            else:
+                return make_response(jsonify({'message': 'No orders found'}), 404)
+        else:
+            return make_response(jsonify({'message': 'You are not authorized to cancel orders'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
 @order_blueprint.route('/confirm_order/<int:order_id>', methods=['PUT'])
 @jwt_required()
 def confirm_order(order_id):
