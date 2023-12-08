@@ -7,9 +7,11 @@ from database.schema import ProductSchema
 from error_log import logger
 from .managerAPI import manager_blueprint
 from .userAPI import user_blueprint
+from cache import cache
 
 
 @user_blueprint.route('/get_products', methods=['GET'])
+@cache.cached(timeout=60)
 def get_products():
     product_schema = ProductSchema(many=True)
     try:

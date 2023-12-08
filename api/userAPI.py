@@ -5,6 +5,7 @@ from database import db
 from database.models import User, Order, Category, Role
 from database.schema import UserSchema, OrderSchema, CategorySchema
 from error_log import logger
+from cache import cache
 
 user_blueprint = Blueprint('user', __name__)
 
@@ -26,6 +27,7 @@ def create_user():
 
 
 @user_blueprint.route('/', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_user():
     user_schema = UserSchema()
@@ -42,6 +44,7 @@ def get_user():
 
 
 @user_blueprint.route('/get_category/<int:category_id>', methods=['GET'])
+@cache.cached(timeout=60)
 def get_category(category_id):
     category_schema = CategorySchema(many=False)
     try:
@@ -58,6 +61,7 @@ def get_category(category_id):
 
 
 @user_blueprint.route('/get_categories', methods=['GET'])
+@cache.cached(timeout=60)
 def get_categories():
     category_schema = CategorySchema(many=True)
     try:

@@ -7,6 +7,7 @@ from database.schema import ProductSchema, UserSchema, CategoryRequestSchema, Ma
 from error_log import logger
 from mail import send_mail
 from mail.templates import manager_created
+from cache import cache
 
 manager_blueprint = Blueprint('manager', __name__)
 
@@ -30,6 +31,7 @@ def create_manager_request():
 
 
 @manager_blueprint.route('/get_products', methods=['GET'])
+@cache.cached(timeout=60)
 @jwt_required()
 def get_products():
     try:
