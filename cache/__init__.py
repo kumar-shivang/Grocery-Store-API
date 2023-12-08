@@ -13,8 +13,12 @@ config = {
 cache = Cache(app, config=config)
 
 
-@app.after_request
-def after_request(response):
-    if request.method != 'GET':
-        cache.clear()
-    return response
+@app.before_request
+def after_request():
+    if request.method in ["POST", "PUT", "DELETE"]:
+        with app.app_context():
+            cache.clear()
+            print('cache cleared')
+
+
+# delete cache after timeout
