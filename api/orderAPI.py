@@ -131,9 +131,11 @@ def cancel_order(order_id):
 def confirm_order(order_id):
     try:
         current_user = User.query.get(get_jwt_identity())
-        if current_user.role.role_name == "manager":
+        if current_user.role.role_name == "user":
             order = Order.query.get(order_id)
             if order:
+                if order.user_id != current_user.id:
+                    return make_response(jsonify({'message': 'You are not authorized to confirm this order'}), 403)
                 if order.confirmed:
                     return make_response(jsonify({'message': 'Order already confirmed'}), 400)
                 else:
