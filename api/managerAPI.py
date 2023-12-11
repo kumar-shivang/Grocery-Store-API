@@ -1,4 +1,4 @@
-from flask import jsonify, request, make_response, Blueprint
+from flask import jsonify, request, make_response, Blueprint, send_file
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from database import db
@@ -8,6 +8,7 @@ from error_log import logger
 from mail import send_mail
 from mail.templates import manager_created
 from cache import cache
+from scheduled_jobs.export import export_product_as_csv
 
 manager_blueprint = Blueprint('manager', __name__)
 
@@ -158,3 +159,64 @@ def update_category(cat_id):
         logger.error(e)
         return make_response(jsonify({'message': str(e)}), 400)
 
+
+
+@manager_blueprint.route('/export_product/<int:product_id>', methods=['POST'])
+@jwt_required()
+def request_product_csv(product_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == 'manager':
+            product = Product.query.get(product_id)
+            if not product:
+                return make_response(jsonify({'message': 'Product not found'}), 404)
+            elif product.added_by != current_user.id:
+                return make_response(jsonify({'message': 'You cannot request csv for this product'}), 400)
+            else:
+                task = export_product_as_csv.delay(product_id)
+                return make_response(jsonify({'message': 'CSV requested successfully, wait a moment','taskID':task.id}), 200)
+        else:
+            return make_response(jsonify({'message': 'Only managers can request csv for a product.'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@manager_blueprint.route('/task_status/<string:task_id>', methods=['GET'])
+@jwt_required()
+def request_product_csv_status(task_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == 'manager':
+            task = export_product_as_csv.AsyncResult(task_id)
+            if task.state == 'PENDING':
+                return make_response(jsonify({'message': 'Task pending'}), 200)
+            elif task.state == 'SUCCESS':
+                return make_response(jsonify({'message': 'Task completed','taskID':task.id}), 200)
+            elif task.state == 'FAILURE':
+                return make_response(jsonify({'message': 'Task failed'}), 400)
+            else:
+                return make_response(jsonify({'message': 'Task running'}), 200)
+        else:
+            return make_response(jsonify({'message': 'Only managers can request csv for a product.'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
+
+
+@manager_blueprint.route('/csv_download/<string:product_id>', methods=['GET'])
+@jwt_required()
+def csv_download(product_id):
+    try:
+        current_user = User.query.get(get_jwt_identity())
+        if current_user.role.role_name == 'manager':
+            product = Product.query.get(product_id)
+            if product:
+                return send_file('/static/products/{}.csv'.format(product.id), as_attachment=True)
+            else:
+                return make_response(jsonify({'message': 'Product not found'}), 404)
+        else:
+            return make_response(jsonify({'message': 'Only managers can request csv for a product.'}), 403)
+    except Exception as e:
+        logger.error(e)
+        return make_response(jsonify({'message': str(e)}), 400)
