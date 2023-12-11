@@ -22,4 +22,3 @@ class Config(object):
     MAIL_PORT = 1025
     MAIL_USE_TLS = False
     MAIL_USE_SSL = False
-
