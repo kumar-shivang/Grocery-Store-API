@@ -161,7 +161,7 @@ def update_category(cat_id):
 
 
 
-@manager_blueprint.route('/export_product/<int:product_id>', methods=['POST'])
+@manager_blueprint.route('/export_product/<int:product_id>', methods=['GET'])
 @jwt_required()
 def request_product_csv(product_id):
     try:
@@ -190,13 +190,14 @@ def request_product_csv_status(task_id):
         if current_user.role.role_name == 'manager':
             task = export_product_as_csv.AsyncResult(task_id)
             if task.state == 'PENDING':
-                return make_response(jsonify({'message': 'Task pending'}), 200)
+                return make_response(jsonify({'message': 'Task pending', 'status':task.state}), 200)
             elif task.state == 'SUCCESS':
-                return make_response(jsonify({'message': 'Task completed','taskID':task.id}), 200)
+                return make_response(jsonify({'message': 'Task completed','status':task.state}), 200)
             elif task.state == 'FAILURE':
-                return make_response(jsonify({'message': 'Task failed'}), 400)
+                print("Task failed")
+                return make_response(jsonify({'message': 'Task failed','status':task.state}), 400)
             else:
-                return make_response(jsonify({'message': 'Task running'}), 200)
+                return make_response(jsonify({'message': 'Task running','status':task.state}), 200)
         else:
             return make_response(jsonify({'message': 'Only managers can request csv for a product.'}), 403)
     except Exception as e:
