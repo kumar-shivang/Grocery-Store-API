@@ -49,7 +49,7 @@ def routes():
     # This is a helper function to get all the routes in the app
     json = {}
     for rule in app.url_map.iter_rules():
-        json[rule.endpoint] = rule.rule
+        json[rule.endpoint] = "http://127.0.0.1:5000"+rule.rule
     return jsonify(json)
 
 
