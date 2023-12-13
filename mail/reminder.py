@@ -51,7 +51,7 @@ def send_reminder_mail():
                       sender="reminder@grocery.com",
                       recipients=[user.email],
                       html_body=reminder2(user.username, len(orders)))
-    print('mail sent')
+    print('daily mail sent')
 
 
 def monthly_reminder1(username):
@@ -153,4 +153,4 @@ def send_monthly_report():
                       sender="report@.grocery.com",
                       recipients=[user.email],
                       html_body=monthly_reminder4(user.username, no_of_confirmed, value_of_confirmed))
-    print('mail sent')
+    print('monthly mail sent')
