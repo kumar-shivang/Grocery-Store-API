@@ -26,11 +26,8 @@ def user_login():
 @login_blueprint.route('/admin', methods=['POST'])
 def admin_login():
     try:
-        print('admin login')
         body = request.get_json()
-        print(body)
         user = validate_user_credentials(body)
-        print(user.role.role_name)
         if not user.role.role_name == 'admin':
             return make_response(jsonify({'message': 'Only admins can login here.'}), 403)
         access_token = create_access_token(identity=user.id)
