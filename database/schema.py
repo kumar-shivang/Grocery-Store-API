@@ -568,19 +568,14 @@ class ProductImageSchema(Schema):
     @post_load()
     def make_product_image(self, data,**kwargs):
         try:
-            print("trying to load image")
-            print(data)
             image_file = data.get('image_file')
-            print(image_file)
             # uuid1().hex is a unique string which is usually safe, but we use secure_filename() to be extra safe
             image_name = secure_filename(uuid1().hex) + '.png'
-            print(image_name)
             image = Image.open(image_file.stream)
-            print(image)
             image.convert('RGB')
             image.thumbnail((300, 300))
             image.save('static/images/{}'.format(image_name))
-            print("image_saved")
+
             data['image_name'] = image_name
             data.pop('image_file')
             return ProductImage(**data)
