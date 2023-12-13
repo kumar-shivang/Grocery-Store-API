@@ -23,7 +23,6 @@ def upload_image():
         if 'image' not in files:
             return make_response(jsonify({'message': 'Image not found in request'}), 400)
         image_file = files['image']
-        print(image_file)
         image = image_schema.load({'image_file': image_file})
         db.session.add(image)
         db.session.commit()
