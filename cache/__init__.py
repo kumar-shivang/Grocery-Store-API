@@ -19,6 +19,3 @@ def after_request():
         with app.app_context():
             cache.clear()
             print('cache cleared')
-
-
-# delete cache after timeout
