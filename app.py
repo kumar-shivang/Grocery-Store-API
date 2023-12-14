@@ -24,16 +24,16 @@ def hello_world():
     return jsonify({'message': 'Hello World!'})
 
 
-@celery.task(name='time')
-def current_time():
-    from datetime import datetime
-    print("Time current time is ", datetime.now())
-    return datetime.now()
+# @celery.task(name='time')
+# def current_time():
+#     from datetime import datetime
+#     print("Time current time is ", datetime.now())
+#     return datetime.now()
 
 
 @celery.on_after_finalize.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(10.0, current_time.s(), name='time')
+    # sender.add_periodic_task(10.0, current_time.s(), name='time')
     sender.add_periodic_task(crontab(hour="20", minute="0"),
                              send_reminder_mail.s(),
                              name='send_reminder_mail')
