@@ -155,7 +155,7 @@ class Product(db.Model):
         return self
 
     def update_expiry_date(self, new_expiry_date):
-        if new_expiry_date < datetime.utcnow().date():
+        if new_expiry_date < datetime.now().date():
             raise ValueError("Expiry date cannot be in the past")
         self.expiry_date = new_expiry_date
         db.session.add(self)
@@ -185,8 +185,8 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     category_name = db.Column(db.String(100), unique=True)
     category_description = db.Column(db.String(100))
-    added_on = db.Column(db.DateTime, default=datetime.utcnow)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    added_on = db.Column(db.DateTime, default=datetime.now())
+    last_updated = db.Column(db.DateTime, default=datetime.now(), onupdate=datetime.now())
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     products = db.relationship('Product', backref='category', lazy='dynamic')
 
@@ -412,7 +412,7 @@ class ManagerCreationRequests(db.Model):
     password = db.Column(db.String(256))
     email = db.Column(db.String(100), unique=True)
     approved = db.Column(db.Boolean, default=False)
-    approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.utcnow)
+    approved_at = db.Column(db.DateTime, default=None, onupdate=datetime.now())
 
     def __init__(self, username, password, email):
         self.username = username
