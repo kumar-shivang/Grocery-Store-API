@@ -66,8 +66,8 @@ class UserSchema(Schema):
         username = username.strip()
         username = username.lower()
         username = bleach.clean(username)
-        if len(username) < 6:
-            raise ValidationError("Username must be at least 6 characters long")
+        if len(username) < 4:
+            raise ValidationError("Username must be at least 4 characters long")
         elif username[0].isdigit():
             raise ValidationError("Username must start with a letter")
         elif not username.isalnum():
@@ -184,7 +184,7 @@ class ProductSchema(Schema):
 
     @validates('expiry_date')
     def validate_expiry_date(self, expiry_date):
-        if expiry_date < datetime.utcnow().date():
+        if expiry_date < datetime.now().date():
             raise ValidationError("Expiry date cannot be in the past")
 
     @validates('rate')
