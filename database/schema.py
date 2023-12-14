@@ -394,7 +394,7 @@ class CategoryRequestSchema(Schema):
                   'added_on', 'approved_at', 'approved', 'request_type', 'user_id')
 
     id = fields.Int(dump_only=True)
-    category_id = fields.Int(required=False, default=None)
+    category_id = fields.Int(dump_only=True)
     category_name = fields.Str(required=False, default=None)
     category_description = fields.Str(required=False, default=None)
     request_type = fields.Str(required=True)
@@ -422,10 +422,6 @@ class CategoryRequestSchema(Schema):
         if request_type not in {'add', 'delete', 'update'}:
             raise ValidationError("Request type must be one of 'add', 'delete','update'")
 
-    @validates('category_id')
-    def validate_category_id(self, category_id):
-        if not Category.query.filter_by(id=category_id).first():
-            raise ValidationError("Category with id {} does not exist".format(category_id))
 
     @post_load()
     def make_category_request(self, data, **kwargs):
