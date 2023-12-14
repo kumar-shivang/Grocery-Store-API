@@ -450,15 +450,12 @@ paths:
               type: object
               properties:
                 category_name:
-                  required: false
                   type: string
                   example: xyz
                 category_description:
-                  required: false
                   type: string
                   example: xyz
                 access_token:
-                  required: true
                   type: string
                   example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9
       responses:
